@@ -6,7 +6,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public final class JsonUtil <T, K, V, C extends Collection <T>, M extends Map <K, V> > {
+public final class JsonUtil {
 
     private static final Gson GSON = new Gson ();
 
