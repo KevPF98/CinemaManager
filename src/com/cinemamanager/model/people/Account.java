@@ -1,27 +1,29 @@
 package com.cinemamanager.model.people;
 
 import com.cinemamanager.enums.Role;
+import com.cinemamanager.iface.Identifiable;
 
 import java.util.Objects;
 
-public final class Account {
+public final class Account implements Identifiable <Integer> {
 
-    private int accountId;
+    private final int id;
     private String nickname;
     private String password;
     private boolean enabled;
     private Role role;
 
-    public Account (int accountId, String nickname, String password, Role role) {
-        this.accountId = accountId;
+    public Account (int id, String nickname, String password, Role role) {
+        this.id = id;
         this.nickname = nickname;
         this.password = password;
         this.enabled = true;
         this.role = role;
     }
 
-    public int getAccountId() {
-        return accountId;
+    @Override
+    public Integer getId() {
+        return id;
     }
 
     public String getNickname() {
@@ -66,12 +68,12 @@ public final class Account {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Account account = (Account) o;
-        return Objects.equals(accountId, account.accountId);
+        return Objects.equals(id, account.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(accountId);
+        return Objects.hashCode(id);
     }
 
     @Override

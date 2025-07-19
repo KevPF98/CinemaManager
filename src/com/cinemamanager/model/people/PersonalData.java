@@ -1,8 +1,10 @@
 package com.cinemamanager.model.people;
 
+import com.cinemamanager.iface.Identifiable;
+
 import java.util.Objects;
 
-public final class PersonalData {
+public final class PersonalData implements Identifiable <String> {
 
     private String nationalId;
     private String name;
@@ -18,7 +20,8 @@ public final class PersonalData {
         this.phoneNumber = phoneNumber;
     }
 
-    public String getNationalId() {
+    @Override
+    public String getId() {
         return nationalId;
     }
 

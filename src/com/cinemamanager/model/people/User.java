@@ -1,10 +1,12 @@
 package com.cinemamanager.model.people;
 
+import com.cinemamanager.iface.Identifiable;
+
 import java.util.Objects;
 
-public final class User {
+public final class User implements Identifiable <Integer> {
 
-    private int userId;
+    private final int userId;
     private Account account;
     private PersonalData personalData;
 
@@ -14,7 +16,7 @@ public final class User {
         this.personalData = personalData;
     }
 
-    public int getUserId() {
+    public Integer getId() {
         return userId;
     }
 
