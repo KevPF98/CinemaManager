@@ -82,6 +82,6 @@ public final class Account implements Identifiable <Integer> {
         String string1 = "Nickname: " + nickname + ".\n";
         String string2 = enabled ? "The user has an active account.\n" : "The user does not have an active account.\n";
         String string3 = role == Role.ADMIN ? "Role: admin.\n" : "Role: employee.\n";
-        return separator + string1 + string2 + string3 + separator;
+        return separator + string1 + string2 + string3;
     }
 }

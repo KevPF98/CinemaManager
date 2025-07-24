@@ -29,7 +29,7 @@ public final class JsonUtil {
     {
         try (FileWriter writer = new FileWriter (path)) {
             GSON.toJson(map, writer);
-            System.out.println("Data has been successfully saved to file: " + path + "!\n");
+            //System.out.println("Data has been successfully saved to file: " + path + "!\n");
         } catch (IOException e) {
             System.err.println("Error writing file: " + e.getMessage());
         }

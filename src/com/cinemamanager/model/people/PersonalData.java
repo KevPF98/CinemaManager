@@ -76,7 +76,6 @@ public final class PersonalData implements Identifiable <String> {
                 "Name: " + name + ".\n" +
                 "Last name: " + lastName + ".\n" +
                 "Email: " + email + ".\n" +
-                "Phone number: " + phoneNumber + ".\n" +
-                "--------------------------\n" ;
+                "Phone number: " + phoneNumber + ".\n" ;
     }
 }

@@ -35,7 +35,7 @@ public final class ConsoleUtil {
 
     public static String readString(String prompt) {
         System.out.print(prompt);
-        return SCANNER.nextLine().trim().toLowerCase();
+        return SCANNER.nextLine().trim();
     }
 
     public static String readStringToLower(String prompt) {

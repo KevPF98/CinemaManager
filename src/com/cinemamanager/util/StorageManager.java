@@ -2,12 +2,13 @@ package com.cinemamanager.util;
 
 import com.cinemamanager.enums.CollectionType;
 import com.cinemamanager.exception.DuplicateElementException;
+import com.cinemamanager.iface.ICrud;
 import com.cinemamanager.iface.Identifiable;
 
 import java.util.*;
 import java.util.function.Predicate;
 
-public final class StorageManager <ID, E extends Identifiable <ID>> {
+public final class StorageManager <ID, E extends Identifiable <ID>> implements ICrud <E, ID> {
 
     // Attributes:
     private Collection <E> collection;
@@ -21,42 +22,30 @@ public final class StorageManager <ID, E extends Identifiable <ID>> {
             case VECTOR:
             case HASH_SET:
             case LINKED_HASH_SET:
+                collection = createCollection (collectionType);
+                break;
             case TREE_SET:
+                System.out.println("WARNING: Make sure your elements implement Comparable and override compareTo.");
                 collection = createCollection (collectionType);
                 break;
             case HASH_MAP:
             case LINKED_HASH_MAP:
+                map = createMap (collectionType);
+                break;
             case TREE_MAP:
+                System.out.println("WARNING: Make sure your keys implement Comparable and override compareTo.");
                 map = createMap (collectionType);
                 break;
         }
     }
 
-    // Constructor-based distinction:
-    private Collection <E> createCollection (CollectionType collectionType) {
-        return switch (collectionType) {
-            case ARRAY_LIST -> new ArrayList<>();
-            case LINKED_LIST -> new LinkedList<>();
-            case VECTOR -> new Vector<>();
-            case HASH_SET -> new HashSet<>();
-            case LINKED_HASH_SET -> new LinkedHashSet<>();
-            case TREE_SET -> new TreeSet<>();
-            default -> throw new IllegalArgumentException ("Unsupported collection type: " + collectionType);
-        };
-    }
-
-    private Map <ID, E> createMap (CollectionType collectionType) {
-        return switch (collectionType) {
-            case HASH_MAP -> new HashMap<>();
-            case LINKED_HASH_MAP -> new LinkedHashMap<>();
-            case TREE_MAP -> new TreeMap<>();
-            default -> throw new IllegalArgumentException ("Unsupported collection type: " + collectionType);
-        };
-    }
-
-    // Validating
-    private boolean isUsingMap () {
-        return map != null;
+    // Clear collection:
+    public void clear() {
+        if (isUsingMap()) {
+            map.clear();
+        } else {
+            collection.clear();
+        }
     }
 
     // CRUD methods:
@@ -143,7 +132,6 @@ public final class StorageManager <ID, E extends Identifiable <ID>> {
         }
 
         map.put(key, element);
-        System.out.println("Element added successfully!");
     }
 
     private void deleteFromMap(ID id) {
@@ -171,6 +159,33 @@ public final class StorageManager <ID, E extends Identifiable <ID>> {
                 },
                 () -> System.out.println("No element found with the given ID.")
         );
+    }
+
+    // Constructor-based distinction:
+    private Collection <E> createCollection (CollectionType collectionType) {
+        return switch (collectionType) {
+            case ARRAY_LIST -> new ArrayList<>();
+            case LINKED_LIST -> new LinkedList<>();
+            case VECTOR -> new Vector<>();
+            case HASH_SET -> new HashSet<>();
+            case LINKED_HASH_SET -> new LinkedHashSet<>();
+            case TREE_SET -> new TreeSet<>();
+            default -> throw new IllegalArgumentException ("Unsupported collection type: " + collectionType);
+        };
+    }
+
+    private Map <ID, E> createMap (CollectionType collectionType) {
+        return switch (collectionType) {
+            case HASH_MAP -> new HashMap<>();
+            case LINKED_HASH_MAP -> new LinkedHashMap<>();
+            case TREE_MAP -> new TreeMap<>();
+            default -> throw new IllegalArgumentException ("Unsupported collection type: " + collectionType);
+        };
+    }
+
+    // Validating:
+    private boolean isUsingMap () {
+        return map != null;
     }
 
 }

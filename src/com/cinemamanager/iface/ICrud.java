@@ -6,12 +6,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-public interface ICrudList <E extends Identifiable <ID>, ID> {
-    void add (E element) throws DuplicateElementException;
+public interface ICrud<E extends Identifiable <ID>, ID> {
+    void add (E element, boolean duplicatesAllowed) throws DuplicateElementException;
     Optional <E> findById (ID id);
     Optional <E> findFirstBy (Predicate<E> condition);
     List <E> findBy (Predicate <E> condition);
     List <E> findAll ();
-    E update (ID id) throws IllegalArgumentException;
+    void update (E element) throws IllegalArgumentException;
     void delete (ID id);
 }
