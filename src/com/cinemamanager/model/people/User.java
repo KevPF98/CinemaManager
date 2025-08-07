@@ -50,6 +50,6 @@ public final class User implements Identifiable <Integer> {
 
     @Override
     public String toString() {
-        return account.toString() + personalData.toString();
+        return "ID: " + userId + ".\n" + account.toString() + personalData.toString();
     }
 }

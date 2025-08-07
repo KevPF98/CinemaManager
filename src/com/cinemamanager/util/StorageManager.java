@@ -86,16 +86,10 @@ public final class StorageManager <ID, E extends Identifiable <ID>> implements I
 
     public void update(E element) throws IllegalArgumentException {
         if (!isUsingMap()) {
-            if (!collection.contains(element)) {
-                throw new IllegalArgumentException("Element not found in collection for update.");
-            }
             collection.removeIf(e -> e.equals(element));
             collection.add(element);
         } else {
             ID key = element.getId();
-            if (!map.containsKey(key)) {
-                throw new IllegalArgumentException("Key not found in map for update.");
-            }
             map.put(key, element);
         }
         System.out.println("Element updated successfully!");

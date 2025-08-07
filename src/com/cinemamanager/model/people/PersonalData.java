@@ -11,18 +11,24 @@ public final class PersonalData implements Identifiable <String> {
     private String lastName;
     private String email;
     private String phoneNumber;
+    private boolean mustCompleteProfile;
 
-    public PersonalData(String nationalId, String name, String lastName, String email, String phoneNumber) {
+    public PersonalData(String nationalId, String name, String lastName, String email, String phoneNumber, boolean mustCompleteProfile) {
         this.nationalId = nationalId;
         this.name = name;
         this.lastName = lastName;
         this.email = email;
         this.phoneNumber = phoneNumber;
+        this.mustCompleteProfile = mustCompleteProfile;
     }
 
     @Override
     public String getId() {
         return nationalId;
+    }
+
+    public void setId(String nationalId) {
+        this.nationalId = nationalId;
     }
 
     public String getName() {
@@ -55,6 +61,14 @@ public final class PersonalData implements Identifiable <String> {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public boolean isMustCompleteProfile() {
+        return mustCompleteProfile;
+    }
+
+    public void setMustCompleteProfile(boolean mustCompleteProfile) {
+        this.mustCompleteProfile = mustCompleteProfile;
     }
 
     @Override
