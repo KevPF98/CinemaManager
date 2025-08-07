@@ -3,6 +3,7 @@ import java.time.Duration;
 import java.time.LocalTime;
 
 public final class Showtime {
+
     private Duration cleaningDuration;
     private LocalTime startTime;
     private LocalTime endTime;
