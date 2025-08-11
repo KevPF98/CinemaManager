@@ -1,8 +1,8 @@
 package com.cinemamanager.model.cine;
 
-import com.cinemamanager.enums.*;
+import com.cinemamanager.enums.movie.*;
 import com.cinemamanager.iface.Identifiable;
-import com.cinemamanager.util.ConsoleUtil;
+import com.cinemamanager.util.common.ConsoleUtil;
 
 import java.time.Duration;
 import java.util.Objects;
@@ -159,7 +159,7 @@ public final class Movie implements Identifiable <Integer> {
                 "--------------------------\n";
     }
 
-    private String formatDuration(Duration duration) {
+    private String formatDuration (Duration duration) {
         long hours = duration.toHours();
         long minutes = duration.toMinutes() % 60;
         return String.format("%dh %02dmin", hours, minutes);

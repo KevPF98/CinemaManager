@@ -1,4 +1,4 @@
-package com.cinemamanager.enums;
+package com.cinemamanager.enums.movie;
 
 public enum MovieStatus {
     NOW_SHOWING,

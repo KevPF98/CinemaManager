@@ -1,12 +1,13 @@
-package com.cinemamanager.manager;
-import com.cinemamanager.enums.*;
-import com.cinemamanager.exception.DuplicateElementException;
+package com.cinemamanager.manager.movie;
+import com.cinemamanager.util.common.enums.CollectionType;
+import com.cinemamanager.enums.movie.*;
+import com.cinemamanager.util.common.exception.DuplicateElementException;
 import com.cinemamanager.exception.MovieNotFoundException;
 import com.cinemamanager.model.cine.Movie;
-import com.cinemamanager.util.ConsoleUtil;
-import com.cinemamanager.util.JsonUtil;
-import com.cinemamanager.util.MovieFactory;
-import com.cinemamanager.util.StorageManager;
+import com.cinemamanager.util.common.ConsoleUtil;
+import com.cinemamanager.util.common.JsonUtil;
+import com.cinemamanager.util.movie.MovieFactory;
+import com.cinemamanager.util.common.StorageManager;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.time.Duration;
@@ -15,7 +16,7 @@ import java.util.regex.Pattern;
 
 public final class MovieManager {
     private final StorageManager <Integer, Movie> movieStorageManager;
-    private static final String MOVIE_FILE_PATH = "movie.json";
+    private static final String MOVIE_FILE_PATH = "movies.json";
     private int nextId;
 
     public MovieManager () {
@@ -36,7 +37,7 @@ public final class MovieManager {
             saveToFile();
             System.out.println("\nMovie registered successfully!\n");
         } catch (DuplicateElementException e) {
-            System.out.println("Error registering the movie: " + e.getMessage());
+            System.out.println("\nError registering the movie: " + e.getMessage());
         }
     }
 
@@ -148,16 +149,56 @@ public final class MovieManager {
             String chosenOption = ConsoleUtil.readOption(prompt, validOptions);
 
             switch (chosenOption) {
-                case "1"  -> changeTitle(movieToUpdate);
-                case "2"  -> changeAudioLanguage(movieToUpdate);
-                case "3"  -> changeSubLanguage(movieToUpdate);
-                case "4"  -> changeDuration(movieToUpdate);
-                case "5"  -> changeProducer(movieToUpdate);
-                case "6"  -> changeDirector(movieToUpdate);
-                case "7"  -> changeYear(movieToUpdate);
-                case "8"  -> changeCountry(movieToUpdate);
-                case "9"  -> changeAgeRating(movieToUpdate);
-                case "10" -> changeGenre(movieToUpdate);
+                case "1"  -> {
+                    changeTitle(movieToUpdate);
+                    System.out.println("Title changed successfully!");
+                    saveToFile();
+                }
+                case "2"  -> {
+                    changeAudioLanguage(movieToUpdate);
+                    System.out.println("Language changed successfully!");
+                    saveToFile();
+                }
+                case "3"  -> {
+                    changeSubLanguage(movieToUpdate);
+                    System.out.println("Subtitle changed successfully!");
+                    saveToFile();
+                }
+                case "4"  -> {
+                    changeDuration(movieToUpdate);
+                    System.out.println("Duration of the movie changed successfully!");
+                    saveToFile();
+                }
+                case "5"  -> {
+                    changeProducer(movieToUpdate);
+                    System.out.println("Producer changed successfully!");
+                    saveToFile();
+                }
+                case "6"  -> {
+                    changeDirector(movieToUpdate);
+                    System.out.println("Director changed successfully!");
+                    saveToFile();
+                }
+                case "7"  -> {
+                    changeYear(movieToUpdate);
+                    System.out.println("Release year changed successfully!");
+                    saveToFile();
+                }
+                case "8"  -> {
+                    changeCountry(movieToUpdate);
+                    System.out.println("Country of origin changed successfully!");
+                    saveToFile();
+                }
+                case "9"  -> {
+                    changeAgeRating(movieToUpdate);
+                    System.out.println("Age rating changed successfully!");
+                    saveToFile();
+                }
+                case "10" -> {
+                    changeGenre(movieToUpdate);
+                    System.out.println("Genre changed successfully!");
+                    saveToFile();
+                }
                 case "11" -> changeStatus(movieToUpdate);
                 case "12" -> changeAll(movieToUpdate);
                 case "0"  -> {}
@@ -196,71 +237,51 @@ public final class MovieManager {
     private void changeTitle (Movie movieToUpdate) {
         String newTitle = ConsoleUtil.readCapitalizedString("Enter the new title: ");
         movieToUpdate.setTitle(newTitle);
-        System.out.println("Title changed successfully!");
-        saveToFile();
     }
 
     private void changeAudioLanguage (Movie movieToUpdate) {
         Language newAudio = ConsoleUtil.readEnum(Language.class, "Select the audio language");
         movieToUpdate.setAudio(newAudio);
-        System.out.println("Language changed successfully!");
-        saveToFile();
     }
 
     private void changeSubLanguage (Movie movieToUpdate) {
         Language newSub = ConsoleUtil.readEnum(Language.class, "Select the subtitle language");
-        movieToUpdate.setAudio(newSub);
-        System.out.println("Subtitle changed successfully!");
-        saveToFile();
+        movieToUpdate.setSubtitles(newSub);
     }
 
     private void changeDuration (Movie movieToUpdate) {
         Duration newDuration = ConsoleUtil.readDuration("Enter the new movie duration: ");
         movieToUpdate.setDuration(newDuration);
-        System.out.println("Duration of the movie changed successfully!");
-        saveToFile();
     }
 
     private void changeProducer (Movie movieToUpdate) {
         String newProducer = ConsoleUtil.readCapitalizedString("Enter the new producer name: ");
         movieToUpdate.setProducer(newProducer);
-        System.out.println("Producer changed successfully!");
-        saveToFile();
     }
 
     private void changeDirector (Movie movieToUpdate) {
         String newDirector = ConsoleUtil.readCapitalizedString("Enter the new director name: ");
         movieToUpdate.setDirector(newDirector);
-        System.out.println("Director changed successfully!");
-        saveToFile();
     }
 
     private void changeYear (Movie movieToUpdate) {
         int newYear = ConsoleUtil.readInt("Enter the new year: ");
         movieToUpdate.setReleaseYear(newYear);
-        System.out.println("Release year changed successfully!");
-        saveToFile();
     }
 
     private void changeCountry (Movie movieToUpdate) {
         Country newCountry = ConsoleUtil.readEnum(Country.class, "Select the country");
         movieToUpdate.setCountry(newCountry);
-        System.out.println("Country of origin changed successfully!");
-        saveToFile();
     }
 
     private void changeAgeRating (Movie movieToUpdate) {
         AgeRating newAgeRating = ConsoleUtil.readEnum(AgeRating.class, "Select the age rating");
         movieToUpdate.setAgeRating(newAgeRating);
-        System.out.println("Age rating changed successfully!");
-        saveToFile();
     }
 
     private void changeGenre (Movie movieToUpdate) {
         MovieGenre newMovieGenre = ConsoleUtil.readEnum(MovieGenre.class, "Select the genre");
         movieToUpdate.setGenre(newMovieGenre);
-        System.out.println("Genre changed successfully!");
-        saveToFile();
     }
 
     private void changeStatus (Movie movieToUpdate) {
@@ -281,6 +302,8 @@ public final class MovieManager {
         changeAgeRating(movieToUpdate);
         changeGenre(movieToUpdate);
         changeStatus(movieToUpdate);
+        System.out.println("Everything changed successfully!");
+        saveToFile();
     }
 
     private void loadFromFile () {

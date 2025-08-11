@@ -1,9 +1,11 @@
-package com.cinemamanager.util;
-
-import com.cinemamanager.manager.UserManager;
-
+package com.cinemamanager.util.common;
+import com.cinemamanager.manager.user.UserManager;
+import com.cinemamanager.util.user.UserValidator;
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.List;
@@ -11,7 +13,11 @@ import java.util.Scanner;
 import java.util.Set;
 
 public final class ConsoleUtil {
+
     private static final Scanner SCANNER = new Scanner(System.in);
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     public static Scanner getScanner() {
         return SCANNER;
@@ -127,6 +133,20 @@ public final class ConsoleUtil {
         }
     }
 
+    // Date and time:
+
+    public static String formatTime(LocalTime time) {
+        return time.format(TIME_FORMATTER);
+    }
+
+    public static String formatDate(LocalDate date) {
+        return date.format(DATE_FORMATTER);
+    }
+
+    public static String formatDateTime(LocalDateTime dateTime) {
+        return dateTime.format(DATE_TIME_FORMATTER);
+    }
+
     public static Duration readDuration(String prompt) {
         while (true) {
             System.out.print(prompt + " (format HH:mm:ss): ");
@@ -153,11 +173,34 @@ public final class ConsoleUtil {
         while (true) {
             System.out.print(prompt + " (format HH:mm): ");
             String input = SCANNER.nextLine().trim();
-
             try {
-                return LocalTime.parse(input);
+                return LocalTime.parse(input, TIME_FORMATTER);
             } catch (DateTimeParseException e) {
                 System.out.println("Invalid time format. Please enter in HH:mm format.");
+            }
+        }
+    }
+
+    public static LocalDate readDate(String prompt) {
+        while (true) {
+            System.out.print(prompt + " (format dd/MM/yyyy): ");
+            String input = SCANNER.nextLine().trim();
+            try {
+                return LocalDate.parse(input, DATE_FORMATTER);
+            } catch (DateTimeParseException e) {
+                System.out.println("Invalid date format. Please enter in dd/MM/yyyy format.");
+            }
+        }
+    }
+
+    public static LocalDateTime readDateTime(String prompt) {
+        while (true) {
+            System.out.print(prompt + " (format dd/MM/yyyy HH:mm): ");
+            String input = SCANNER.nextLine().trim();
+            try {
+                return LocalDateTime.parse(input, DATE_TIME_FORMATTER);
+            } catch (DateTimeParseException e) {
+                System.out.println("Invalid datetime format. Please enter in dd/MM/yyyy HH:mm format.");
             }
         }
     }
@@ -299,6 +342,21 @@ public final class ConsoleUtil {
                 return phoneNumber;
             }
         }
+    }
+
+    // Ticket:
+
+    public static double readValidPrice(String prompt) {
+        double price;
+        do {
+            price = readDouble(prompt);
+            if (price <= 0) {
+                System.out.println("Price must be greater than $0.00. Please try again.");
+            } else {
+                System.out.println("Price entered: $" + String.format("%.2f", price));
+                return price;
+            }
+        } while (true);
     }
 
 }

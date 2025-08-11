@@ -1,6 +1,6 @@
 package com.cinemamanager.auth;
 
-import com.cinemamanager.manager.UserManager;
+import com.cinemamanager.manager.user.UserManager;
 import com.cinemamanager.model.people.User;
 
 import java.util.Optional;

@@ -1,4 +1,4 @@
-package com.cinemamanager.enums;
+package com.cinemamanager.enums.user;
 
 public enum Role {
     FOUNDER,

@@ -1,11 +1,11 @@
 package com.cinemamanager.ui;
 import com.cinemamanager.auth.LoginService;
-import com.cinemamanager.enums.Role;
+import com.cinemamanager.enums.user.Role;
 import com.cinemamanager.exception.UserNotFoundException;
-import com.cinemamanager.manager.MovieManager;
-import com.cinemamanager.manager.UserManager;
+import com.cinemamanager.manager.movie.MovieManager;
+import com.cinemamanager.manager.user.UserManager;
 import com.cinemamanager.model.people.User;
-import com.cinemamanager.util.ConsoleUtil;
+import com.cinemamanager.util.common.ConsoleUtil;
 import java.util.Set;
 
 public final class MainMenu {

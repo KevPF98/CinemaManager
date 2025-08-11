@@ -1,4 +1,4 @@
-package com.cinemamanager.util;
+package com.cinemamanager.util.common;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;

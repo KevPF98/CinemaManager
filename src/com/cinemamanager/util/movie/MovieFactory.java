@@ -1,7 +1,8 @@
-package com.cinemamanager.util;
+package com.cinemamanager.util.movie;
 
-import com.cinemamanager.enums.*;
+import com.cinemamanager.enums.movie.*;
 import com.cinemamanager.model.cine.Movie;
+import com.cinemamanager.util.common.ConsoleUtil;
 
 import java.time.Duration;
 

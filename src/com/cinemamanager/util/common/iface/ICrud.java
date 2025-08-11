@@ -1,12 +1,13 @@
-package com.cinemamanager.iface;
+package com.cinemamanager.util.common.iface;
 
-import com.cinemamanager.exception.DuplicateElementException;
+import com.cinemamanager.iface.Identifiable;
+import com.cinemamanager.util.common.exception.DuplicateElementException;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-public interface ICrud <E extends Identifiable <ID>, ID> {
+public interface ICrud <E extends Identifiable<ID>, ID> {
     void add (E element, boolean duplicatesAllowed) throws DuplicateElementException;
     Optional <E> findById (ID id);
     Optional <E> findFirstBy (Predicate<E> condition);

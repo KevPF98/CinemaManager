@@ -1,4 +1,4 @@
-package com.cinemamanager.enums;
+package com.cinemamanager.util.common.enums;
 
 public enum CollectionType {
     ARRAY_LIST,

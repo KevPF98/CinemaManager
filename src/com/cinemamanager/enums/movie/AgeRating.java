@@ -1,4 +1,4 @@
-package com.cinemamanager.enums;
+package com.cinemamanager.enums.movie;
 
 public enum AgeRating {
     G,            // General audiences

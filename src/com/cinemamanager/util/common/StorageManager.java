@@ -1,8 +1,8 @@
-package com.cinemamanager.util;
+package com.cinemamanager.util.common;
 
-import com.cinemamanager.enums.CollectionType;
-import com.cinemamanager.exception.DuplicateElementException;
-import com.cinemamanager.iface.ICrud;
+import com.cinemamanager.util.common.enums.CollectionType;
+import com.cinemamanager.util.common.exception.DuplicateElementException;
+import com.cinemamanager.util.common.iface.ICrud;
 import com.cinemamanager.iface.Identifiable;
 
 import java.util.*;
@@ -65,7 +65,7 @@ public final class StorageManager <ID, E extends Identifiable <ID>> implements I
                 .toList();
     }
 
-    public Optional <E> findFirstBy(Predicate <E> condition) {
+    public Optional <E> findFirstBy (Predicate <E> condition) {
         Collection <E> values = isUsingMap() ? map.values() : collection;
         return values.stream()
                 .filter(condition)
@@ -80,11 +80,11 @@ public final class StorageManager <ID, E extends Identifiable <ID>> implements I
                 .findFirst();
     }
 
-    public List<E> findAll() {
+    public List<E> findAll () {
         return new ArrayList<>(isUsingMap() ? map.values() : collection);
     }
 
-    public void update(E element) throws IllegalArgumentException {
+    public void update (E element) throws IllegalArgumentException {
         if (!isUsingMap()) {
             collection.removeIf(e -> e.equals(element));
             collection.add(element);
@@ -117,7 +117,7 @@ public final class StorageManager <ID, E extends Identifiable <ID>> implements I
         System.out.println("Element added successfully!");
     }
 
-    private void addToMap(E element) {
+    private void addToMap (E element) {
         ID key = element.getId();
 
         if (map.containsKey(key)) {
@@ -128,7 +128,7 @@ public final class StorageManager <ID, E extends Identifiable <ID>> implements I
         map.put(key, element);
     }
 
-    private void deleteFromMap(ID id) {
+    private void deleteFromMap (ID id) {
         E element = map.get(id);
         if (element == null) {
             System.out.println("No element found with the given ID.");
@@ -142,7 +142,7 @@ public final class StorageManager <ID, E extends Identifiable <ID>> implements I
         }
     }
 
-    private void deleteFromCollection(ID id) {
+    private void deleteFromCollection (ID id) {
         findById(id).ifPresentOrElse(
                 e -> {
                     String warning = "This operation is irreversible. The following element will be deleted:\n" + e;

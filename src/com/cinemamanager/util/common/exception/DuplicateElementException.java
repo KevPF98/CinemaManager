@@ -1,4 +1,4 @@
-package com.cinemamanager.exception;
+package com.cinemamanager.util.common.exception;
 
 public final class DuplicateElementException extends Exception {
     public DuplicateElementException(String message) {

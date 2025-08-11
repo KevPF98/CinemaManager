@@ -1,12 +1,15 @@
-package com.cinemamanager.manager;
-import com.cinemamanager.enums.CollectionType;
-import com.cinemamanager.enums.Role;
-import com.cinemamanager.exception.DuplicateElementException;
+package com.cinemamanager.manager.user;
+import com.cinemamanager.util.common.enums.CollectionType;
+import com.cinemamanager.enums.user.Role;
+import com.cinemamanager.util.common.exception.DuplicateElementException;
 import com.cinemamanager.exception.UserNotFoundException;
 import com.cinemamanager.model.people.Account;
 import com.cinemamanager.model.people.PersonalData;
 import com.cinemamanager.model.people.User;
-import com.cinemamanager.util.*;
+import com.cinemamanager.util.common.ConsoleUtil;
+import com.cinemamanager.util.common.JsonUtil;
+import com.cinemamanager.util.common.StorageManager;
+import com.cinemamanager.util.user.UserFactory;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.*;
@@ -14,7 +17,7 @@ import java.util.stream.Collectors;
 
 public final class UserManager {
     private final StorageManager <Integer, User> userStorageManager;
-    private static final String USER_FILE_PATH = "user.json";
+    private static final String USER_FILE_PATH = "users.json";
     private int nextId;
 
     public UserManager () {
@@ -35,7 +38,7 @@ public final class UserManager {
             saveToFile();
             System.out.println("\nUser created successfully!\n");
         } catch (DuplicateElementException e) {
-            System.out.println("Error adding the user: " + e.getMessage());
+            System.out.println("\nError adding the user: " + e.getMessage());
         }
     }
 
@@ -238,7 +241,7 @@ public final class UserManager {
                         What do you want to do?
                         [1] Change full name.
                         [2] Change email.
-                        [3] Change phone number.
+                        [3] Change phone seatNumber.
                         [4] Change all.
                         
                         [0] Back.
@@ -279,11 +282,11 @@ public final class UserManager {
     private void changePhoneNumber (User userToUpdate) {
         String newPhoneNumber = ConsoleUtil.readValidPhone("new phone numer");
         if (phoneNumberAlreadyExists(newPhoneNumber)) {
-            System.out.println("There is already a user associated with this phone number.");
+            System.out.println("There is already a user associated with this phone seatNumber.");
         }
         else {
             userToUpdate.getPersonalData().setPhoneNumber(newPhoneNumber);
-            System.out.println("Phone number successfully changed.\n");
+            System.out.println("Phone seatNumber successfully changed.\n");
             saveToFile();
         }
     }

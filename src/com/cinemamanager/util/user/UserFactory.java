@@ -1,10 +1,11 @@
-package com.cinemamanager.util;
+package com.cinemamanager.util.user;
 
-import com.cinemamanager.enums.Role;
-import com.cinemamanager.manager.UserManager;
+import com.cinemamanager.enums.user.Role;
+import com.cinemamanager.manager.user.UserManager;
 import com.cinemamanager.model.people.Account;
 import com.cinemamanager.model.people.PersonalData;
 import com.cinemamanager.model.people.User;
+import com.cinemamanager.util.common.ConsoleUtil;
 
 public final class UserFactory {
 

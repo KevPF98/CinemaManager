@@ -1,5 +1,5 @@
 package com.cinemamanager.model.people;
-import com.cinemamanager.enums.Role;
+import com.cinemamanager.enums.user.Role;
 
 public final class Account {
 
