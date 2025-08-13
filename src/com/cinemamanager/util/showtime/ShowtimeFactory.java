@@ -8,6 +8,7 @@ import com.cinemamanager.model.cine.Movie;
 import com.cinemamanager.model.cine.Room;
 import com.cinemamanager.model.cine.Showtime;
 import com.cinemamanager.model.cine.TimeSlot;
+import com.cinemamanager.model.cine.dto.RoomReservation;
 import com.cinemamanager.util.common.ConsoleUtil;
 import java.time.DayOfWeek;
 import java.util.List;
@@ -15,8 +16,6 @@ import java.util.Optional;
 import java.util.TreeSet;
 
 public final class ShowtimeFactory {
-
-    private record RoomReservation(DayOfWeek day, TimeSlot timeSlot, Room room) {}
 
     public static Showtime createShowtime (int showTimeId,
                                            ShowtimeManager showtimeManager,
@@ -39,15 +38,15 @@ public final class ShowtimeFactory {
                 scheduleManager,
                 roomManager,
                 selectedMovie
-        );
+        ).orElseThrow(() -> new BusinessRuleException("No rooms available."));
 
         double price = ConsoleUtil.readValidPrice("Enter the ticket price: ");
 
-        return new Showtime(showTimeId, selectedMovie, reservation.room, reservation.timeSlot(), reservation.day, price);
+        return new Showtime(showTimeId, selectedMovie, reservation.getRoom(), reservation.getTimeSlot(), reservation.getDay(), price);
     }
 
 
-    private static RoomReservation reserveRoom(
+    public static Optional <RoomReservation> reserveRoom(
             ShowtimeManager showtimeManager,
             ScheduleManager scheduleManager,
             RoomManager roomManager,
@@ -64,10 +63,13 @@ public final class ShowtimeFactory {
                         showtimeManager, scheduleManager, roomManager, showDay, timeSlot
                 );
 
+                if (availableRooms.isEmpty()) return Optional.empty();
+
+
                 Room selectedRoom = roomManager.selectRoomByIdFromSet(availableRooms);
                 if (selectedRoom != null) {
                     System.out.println("Room successfully reserved for the day: " + showDay + " at " + ConsoleUtil.formatTime(timeSlot.getStartTime()));
-                    return new RoomReservation(showDay, timeSlot, selectedRoom);
+                    return Optional.of(new RoomReservation(showDay, timeSlot, selectedRoom));
                 }
                 System.out.println("The room is unavailable for reservation at the selected date and time.");
             }

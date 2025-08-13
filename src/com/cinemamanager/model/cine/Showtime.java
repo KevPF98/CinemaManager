@@ -1,11 +1,8 @@
 package com.cinemamanager.model.cine;
-
 import com.cinemamanager.enums.showtime.ShowtimeStatus;
 import com.cinemamanager.iface.Identifiable;
 import com.cinemamanager.util.common.ConsoleUtil;
-
 import java.time.DayOfWeek;
-import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
@@ -30,7 +27,11 @@ public final class Showtime implements Identifiable <Integer> {
         this.price = price;
         this.status = ShowtimeStatus.AVAILABLE;
         this.seats = new TreeSet<>();
+        loadSeats();
+    }
 
+    public void loadSeats() {
+        seats.clear();
         for (int i = 1; i <= room.getTotalSeats(); i++) {
             this.seats.add(new Seat(i));
         }
@@ -88,8 +89,8 @@ public final class Showtime implements Identifiable <Integer> {
         this.status = status;
     }
 
-    public Set <Seat> getSeats() {
-        return Collections.unmodifiableSet(seats);
+    public TreeSet <Seat> getSeats() {
+        return seats;
     }
 
     // Methods related to seats availability:

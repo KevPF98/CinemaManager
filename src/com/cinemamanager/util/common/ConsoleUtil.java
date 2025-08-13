@@ -70,7 +70,7 @@ public final class ConsoleUtil {
         return SCANNER.nextLine().trim().toUpperCase();
     }
 
-    private static String capitalizeEachWord(String input) {
+    public static String capitalizeEachWord(String input) {
         String[] words = input.trim().toLowerCase().split("\\s+");
         StringBuilder result = new StringBuilder();
 
@@ -85,10 +85,10 @@ public final class ConsoleUtil {
         return result.toString().trim();
     }
 
-    public static boolean confirm (String warningMessage) {
+    public static boolean confirm (String message) {
         String input;
         do {
-            System.err.println (warningMessage);
+            System.err.println (message);
             input = readStringToLower("Do you want to proceed? (yes/no): ");
 
             if (input.equals("no")) {
@@ -342,6 +342,21 @@ public final class ConsoleUtil {
                 return phoneNumber;
             }
         }
+    }
+
+    // Seat:
+
+    public static int readValidSeat(String prompt) {
+        int seatNumber;
+        do {
+            seatNumber = readInt(prompt);
+            if (seatNumber <= 0) {
+                System.out.println("Seat number cannot be negative or zero.");
+            } else {
+                System.out.println("Selected seat number: " + seatNumber);
+                return seatNumber;
+            }
+        } while (true);
     }
 
     // Ticket:
