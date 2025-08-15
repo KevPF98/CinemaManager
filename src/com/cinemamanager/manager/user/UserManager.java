@@ -2,7 +2,7 @@ package com.cinemamanager.manager.user;
 import com.cinemamanager.util.common.enums.CollectionType;
 import com.cinemamanager.enums.user.Role;
 import com.cinemamanager.util.common.exception.DuplicateElementException;
-import com.cinemamanager.exception.UserNotFoundException;
+import com.cinemamanager.exception.user.UserNotFoundException;
 import com.cinemamanager.model.people.Account;
 import com.cinemamanager.model.people.PersonalData;
 import com.cinemamanager.model.people.User;
@@ -32,8 +32,18 @@ public final class UserManager {
 
     public void addUser () {
         User newUser = UserFactory.createUser(nextId, this);
+        addUserInternal(newUser);
+    }
+
+    public Optional <User> addUser (String nationalId) {
+        User newUser = UserFactory.createUser(nextId, this, nationalId);
+        addUserInternal(newUser);
+        return Optional.of(newUser);
+    }
+
+    private void addUserInternal(User user) {
         try {
-            userStorageManager.add(newUser, false);
+            userStorageManager.add(user, false);
             nextId++;
             saveToFile();
             System.out.println("\nUser created successfully!\n");
@@ -91,8 +101,23 @@ public final class UserManager {
         saveToFile();
     }
 
-    public User findUserById (int id) throws UserNotFoundException{
-        return userStorageManager.findById(id).orElseThrow(() -> new UserNotFoundException("User with ID: " + id + " not found."));
+    public Optional <User> findUserById (int id) {
+        return userStorageManager.findById(id);
+    }
+
+    public Optional <User> findUserByNationalId(String nationalId) {
+        return userStorageManager.findFirstBy(u -> u.getPersonalData().getId().equals(nationalId));
+    }
+
+    public Optional <User> getOrCreateUser() {
+        String nationalId = ConsoleUtil.readValidNationalId("National ID");
+        return findUserByNationalId(nationalId)
+                .or(() -> ConsoleUtil.confirm(
+                                "No user found with that National ID. Next, you can create a user corresponding to that National ID."
+                        )
+                                ? addUser(nationalId)
+                                : Optional.empty()
+                );
     }
 
     public List <User> findAllUsers () {
@@ -136,36 +161,37 @@ public final class UserManager {
     }
 
     public void updateUser (int id) {
-        try {
-            User userToUpdate = findUserById(id);
-            boolean isDeactivated = !userToUpdate.getAccount().isActive();
+        Optional <User> optionalUserToUpdate = findUserById(id);
+        if (optionalUserToUpdate.isEmpty()) {
+            System.out.println("User not found.");
+            return;
+        }
 
-            if (isDeactivated) {
-                System.out.println("A deactivated user cannot be modified.");
-                return;
-            }
+        User userToUpdate = optionalUserToUpdate.get();
+        boolean isDeactivated = !userToUpdate.getAccount().isActive();
 
-            System.out.println("User found:\n" + userToUpdate);
-            String prompt = """
-                            What do you want to do?
-                            [1] Update account data.
-                            [2] Update personal data.
-                            
-                            [0] Back.
-                            """;
+        if (isDeactivated) {
+            System.out.println("A deactivated user cannot be modified.");
+            return;
+        }
 
-            Set<String> validOptions = Set.of("0", "1", "2");
-            String chosenOption = ConsoleUtil.readOption(prompt, validOptions);
+        System.out.println("User found:\n" + userToUpdate);
+        String prompt = """
+                        What do you want to do?
+                        [1] Update account data.
+                        [2] Update personal data.
+                        
+                        [0] Back.
+                        """;
 
-            if (chosenOption.equals("1")) {
-                updateAccountData(userToUpdate);
-            }
-            else if (chosenOption.equals("2")) {
-                updatePersonalData(userToUpdate);
-            }
+        Set<String> validOptions = Set.of("0", "1", "2");
+        String chosenOption = ConsoleUtil.readOption(prompt, validOptions);
 
-        } catch (UserNotFoundException e) {
-            System.err.println(e.getMessage());
+        if (chosenOption.equals("1")) {
+            updateAccountData(userToUpdate);
+        }
+        else if (chosenOption.equals("2")) {
+            updatePersonalData(userToUpdate);
         }
     }
 
@@ -315,7 +341,7 @@ public final class UserManager {
     }
 
     private void saveToFile () {
-        Map<Integer, User> map = userStorageManager.findAll().stream()
+        Map <Integer, User> map = userStorageManager.findAll().stream()
                 .collect(Collectors.toMap(User::getId, u -> u));
         JsonUtil.write(USER_FILE_PATH, map);
     }

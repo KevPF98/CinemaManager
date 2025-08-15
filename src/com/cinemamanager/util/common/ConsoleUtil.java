@@ -123,7 +123,8 @@ public final class ConsoleUtil {
                 System.out.println(" - " + formatEnumName(constant.name()));
             }
 
-            String input = readStringToUpper("Enter your choice: ");
+            String input = readStringToUpper("Enter your choice: ")
+                    .replace(' ', '_');;
 
             try {
                 return Enum.valueOf(enumClass, input);
@@ -340,6 +341,22 @@ public final class ConsoleUtil {
                 System.out.println("This phone number is already in use. Please enter another one.");
             } else {
                 return phoneNumber;
+            }
+        }
+    }
+
+    // Movie:
+
+    public static int readValidReleaseYear(String prompt) {
+        final int MIN_YEAR = 1935;
+        final int MAX_YEAR = LocalDate.now().getYear() + 1;
+
+        while (true) {
+            int year = readInt(prompt);
+            if (year >= MIN_YEAR && year <= MAX_YEAR) {
+                return year;
+            } else {
+                System.out.println("Please enter a valid year between " + MIN_YEAR + " and " + MAX_YEAR + ".");
             }
         }
     }

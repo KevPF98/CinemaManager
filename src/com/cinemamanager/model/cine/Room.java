@@ -1,5 +1,5 @@
 package com.cinemamanager.model.cine;
-import com.cinemamanager.enums.room.RoomType;
+import com.cinemamanager.enums.cine.room.RoomType;
 import com.cinemamanager.iface.Identifiable;
 import com.cinemamanager.util.common.ConsoleUtil;
 

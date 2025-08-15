@@ -103,6 +103,19 @@ public final class StorageManager <ID, E extends Identifiable <ID>> implements I
         }
     }
 
+    public void delete (E element) {
+        if (element == null) {
+            System.out.println("Cannot delete a null element.");
+            return;
+        }
+        ID id = element.getId();
+        if (isUsingMap()) {
+            deleteFromMap(id);
+        } else {
+            deleteFromCollection(id);
+        }
+    }
+
     private void addToCollection (E element, boolean duplicatesAllowed) throws DuplicateElementException {
         boolean exists = collection.contains(element);
 

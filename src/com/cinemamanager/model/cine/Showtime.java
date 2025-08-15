@@ -1,10 +1,9 @@
 package com.cinemamanager.model.cine;
-import com.cinemamanager.enums.showtime.ShowtimeStatus;
+import com.cinemamanager.enums.cine.showtime.ShowtimeStatus;
 import com.cinemamanager.iface.Identifiable;
 import com.cinemamanager.util.common.ConsoleUtil;
 import java.time.DayOfWeek;
 import java.util.Objects;
-import java.util.Set;
 import java.util.TreeSet;
 
 public final class Showtime implements Identifiable <Integer> {

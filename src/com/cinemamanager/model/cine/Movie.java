@@ -1,6 +1,6 @@
 package com.cinemamanager.model.cine;
 
-import com.cinemamanager.enums.movie.*;
+import com.cinemamanager.enums.cine.movie.*;
 import com.cinemamanager.iface.Identifiable;
 import com.cinemamanager.util.common.ConsoleUtil;
 
@@ -22,7 +22,7 @@ public final class Movie implements Identifiable <Integer> {
     private MovieGenre genre;
     private MovieStatus status;
 
-    public Movie (int movieId, String title, Language audio, Language subtitles, Duration duration, String producer, String director, int releaseYear, Country country, AgeRating ageRating, MovieGenre genre, MovieStatus status) {
+    public Movie (int movieId, String title, Language audio, Language subtitles, Duration duration, String producer, String director, int releaseYear, Country country, AgeRating ageRating, MovieGenre genre) {
         this.movieId = movieId;
         this.title = title;
         this.audio = audio;
@@ -34,7 +34,7 @@ public final class Movie implements Identifiable <Integer> {
         this.country = country;
         this.ageRating = ageRating;
         this.genre = genre;
-        this.status = status;
+        this.status = MovieStatus.COMING_SOON;
     }
 
     @Override
