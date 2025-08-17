@@ -44,15 +44,23 @@ public final class InvoiceManager {
                 user = optionalUser.get();
                 break;
             }
-            if (!ConsoleUtil.confirm("You could try with a different National ID.")) return Optional.empty();
+            if (!ConsoleUtil.confirm("\nDo you want to try with another National ID?")) return Optional.empty();
         }
         List <Ticket> tickets = ticketManager.createTickets();
+        if (tickets.isEmpty()) return Optional.empty();
         Invoice invoice = new Invoice (nextId++, tickets, user.getPersonalData().getId());
-        if (ConsoleUtil.confirm("Amount to pay: $" + invoice.getTotal())) {
-            ticketManager.saveToFile();
-            saveToFile();
-            return Optional.of(invoice);
+        if (ConsoleUtil.confirm("\nAmount to pay: $" + invoice.getTotal() + ".\nDo you want to proceed?")) {
+            try {
+                invoiceStorageManager.add(invoice, false);
+                ticketManager.saveToFile();
+                saveToFile();
+                System.out.println("\nInvoice generated successfully!\n");
+                return Optional.of(invoice);
+            } catch (DuplicateElementException e) {
+                System.out.println("\nError adding the invoice: " + e.getMessage());
+            }
         }
+        ticketManager.getAllTickets().removeAll(tickets);
         return Optional.empty();
     }
 

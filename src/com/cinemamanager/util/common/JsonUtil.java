@@ -21,7 +21,7 @@ public final class JsonUtil {
         try (FileWriter writer = new FileWriter(path)) {
             GSON.toJson(data, writer);
         } catch (IOException e) {
-            System.err.println("Error saving file: " + e.getMessage());
+            System.err.println("\nError saving file: " + e.getMessage() + ".\n");
         }
     }
 
@@ -33,7 +33,7 @@ public final class JsonUtil {
         try (FileReader reader = new FileReader(path)) {
             return GSON.fromJson(reader, typeOfT);
         } catch (IOException e) {
-            System.err.println("Error reading file: " + e.getMessage());
+            System.err.println("\nError reading file: " + e.getMessage() + ".\n");
             return defaultSupplier.get();
         }
     }

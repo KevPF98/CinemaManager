@@ -22,6 +22,9 @@ public final class ConsoleUtil {
     public static Scanner getScanner() {
         return SCANNER;
     }
+    public static void closeScanner() {
+        SCANNER.close();
+    }
 
     // General:
 
@@ -32,7 +35,7 @@ public final class ConsoleUtil {
             try {
                 return Integer.parseInt(line);
             } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Please enter a valid integer.");
+                System.out.println("\nInvalid input. Please enter a valid integer.\n");
             }
         }
     }
@@ -44,7 +47,7 @@ public final class ConsoleUtil {
             try {
                 return Double.parseDouble(line);
             } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Please enter a valid decimal number.");
+                System.out.println("\nInvalid input. Please enter a valid decimal number.\n");
             }
         }
     }
@@ -70,35 +73,20 @@ public final class ConsoleUtil {
         return SCANNER.nextLine().trim().toUpperCase();
     }
 
-    public static String capitalizeEachWord(String input) {
-        String[] words = input.trim().toLowerCase().split("\\s+");
-        StringBuilder result = new StringBuilder();
-
-        for (String word : words) {
-            if (!word.isEmpty()) {
-                result.append(Character.toUpperCase(word.charAt(0)))
-                        .append(word.substring(1))
-                        .append(" ");
-            }
-        }
-
-        return result.toString().trim();
-    }
-
     public static boolean confirm (String message) {
         String input;
         do {
-            System.err.println (message);
-            input = readStringToLower("Do you want to proceed? (yes/no): ");
+            input = readStringToLower(message + " (yes/no): ");
+            System.out.println("\n");
 
             if (input.equals("no")) {
-                System.out.println ("Operation cancelled.");
+                System.out.println ("\nOperation cancelled.\n");
                 return false;
             } else if (input.equals("yes")) {
                 return true;
             }
 
-            System.out.println ("Please, choose a valid option.");
+            System.out.println ("\nPlease, choose a valid option.\n");
         } while (true);
     }
 
@@ -123,15 +111,30 @@ public final class ConsoleUtil {
                 System.out.println(" - " + formatEnumName(constant.name()));
             }
 
-            String input = readStringToUpper("Enter your choice: ")
+            String input = readStringToUpper("\nEnter your choice: ")
                     .replace(' ', '_');;
 
             try {
                 return Enum.valueOf(enumClass, input);
             } catch (IllegalArgumentException e) {
-                System.out.println("Invalid choice. Please try again.");
+                System.out.println("\nInvalid choice. Please try again.\n");
             }
         }
+    }
+
+    private static String capitalizeEachWord(String input) {
+        String[] words = input.trim().toLowerCase().split("\\s+");
+        StringBuilder result = new StringBuilder();
+
+        for (String word : words) {
+            if (!word.isEmpty()) {
+                result.append(Character.toUpperCase(word.charAt(0)))
+                        .append(word.substring(1))
+                        .append(" ");
+            }
+        }
+
+        return result.toString().trim();
     }
 
     // Date and time:
@@ -156,7 +159,7 @@ public final class ConsoleUtil {
             try {
                 String[] parts = input.split(":");
                 if (parts.length != 3) {
-                    throw new IllegalArgumentException("Incorrect format");
+                    throw new IllegalArgumentException("\nIncorrect format.\n");
                 }
 
                 int hours = Integer.parseInt(parts[0]);
@@ -165,7 +168,7 @@ public final class ConsoleUtil {
 
                 return Duration.ofHours(hours).plusMinutes(minutes).plusSeconds(seconds);
             } catch (Exception e) {
-                System.out.println("Invalid duration format. Please enter in HH:mm:ss format.");
+                System.out.println("\nInvalid duration format. Please enter in HH:mm:ss format.\n");
             }
         }
     }
@@ -177,7 +180,7 @@ public final class ConsoleUtil {
             try {
                 return LocalTime.parse(input, TIME_FORMATTER);
             } catch (DateTimeParseException e) {
-                System.out.println("Invalid time format. Please enter in HH:mm format.");
+                System.out.println("\nInvalid time format. Please enter in HH:mm format.\n");
             }
         }
     }
@@ -189,7 +192,7 @@ public final class ConsoleUtil {
             try {
                 return LocalDate.parse(input, DATE_FORMATTER);
             } catch (DateTimeParseException e) {
-                System.out.println("Invalid date format. Please enter in dd/MM/yyyy format.");
+                System.out.println("\nInvalid date format. Please enter in dd/MM/yyyy format.\n");
             }
         }
     }
@@ -201,7 +204,7 @@ public final class ConsoleUtil {
             try {
                 return LocalDateTime.parse(input, DATE_TIME_FORMATTER);
             } catch (DateTimeParseException e) {
-                System.out.println("Invalid datetime format. Please enter in dd/MM/yyyy HH:mm format.");
+                System.out.println("\nInvalid datetime format. Please enter in dd/MM/yyyy HH:mm format.\n");
             }
         }
     }
@@ -234,9 +237,9 @@ public final class ConsoleUtil {
     public static String readValidNickname(String label) {
         String nickname;
         do {
-            nickname = ConsoleUtil.readString("Enter " + label + " (3-20 characters, letters, numbers, underscores): ");
+            nickname = ConsoleUtil.readString("\nEnter " + label + " (3-20 characters, letters, numbers, underscores): ");
             if (!UserValidator.isValidNickname(nickname)) {
-                System.out.println("Invalid nickname. Only letters, numbers and underscores allowed (3-20 characters).");
+                System.out.println("\nInvalid nickname. Only letters, numbers and underscores allowed (3-20 characters).\n");
             }
         } while (!UserValidator.isValidNickname(nickname));
         return nickname;
@@ -245,9 +248,9 @@ public final class ConsoleUtil {
     public static String readValidPassword (String label) {
         String password;
         do {
-            password = ConsoleUtil.readString ("Enter " + label + " (at least 6 characters): ");
+            password = ConsoleUtil.readString ("\nEnter " + label + " (at least 6 characters): ");
             if (!UserValidator.isValidPassword(password)) {
-                System.out.println ("Password too weak. Must be at least 6 characters, include uppercase, lowercase and a number.");
+                System.out.println ("\nPassword too weak. Must be at least 6 characters, include uppercase, lowercase and a number.\n");
             }
         } while (!UserValidator.isValidPassword(password));
         return password;
@@ -256,9 +259,9 @@ public final class ConsoleUtil {
     public static String readValidName(String label) {
         String name;
         do {
-            name = ConsoleUtil.readCapitalizedString("Enter " + label + ": ");
+            name = ConsoleUtil.readCapitalizedString("\nEnter " + label + ": ");
             if (!UserValidator.isValidName(name)) {
-                System.out.println("Invalid " + label + ". Only letters, spaces and hyphens allowed.");
+                System.out.println("\nInvalid " + label + ". Only letters, spaces and hyphens allowed.\n");
             }
         } while (!UserValidator.isValidName(name));
         return name;
@@ -267,9 +270,9 @@ public final class ConsoleUtil {
     public static String readValidNationalId (String label) {
         String nationalId;
         do {
-            nationalId = ConsoleUtil.readString ("Enter " + label + " (7-10 digits): ");
+            nationalId = ConsoleUtil.readString ("\nEnter " + label + " (7-10 digits): ");
             if (!UserValidator.isValidNationalId(nationalId)) {
-                System.out.println ("Invalid National Identification format. Please enter only digits, length 7 to 10.");
+                System.out.println ("\nInvalid National Identification format. Please enter only digits, length 7 to 10.\n");
             }
         } while (!UserValidator.isValidNationalId(nationalId));
         return nationalId;
@@ -278,9 +281,9 @@ public final class ConsoleUtil {
     public static String readValidEmail (String label) {
         String email;
         do {
-            email = ConsoleUtil.readString ("Enter " + label + ": ");
+            email = ConsoleUtil.readString ("\nEnter " + label + ": ");
             if (!UserValidator.isValidEmail(email)) {
-                System.out.println ("Invalid email format. Please try again.");
+                System.out.println ("\nInvalid email format. Please try again.\n");
             }
         } while (!UserValidator.isValidEmail(email));
         return email;
@@ -289,9 +292,9 @@ public final class ConsoleUtil {
     public static String readValidPhone(String label) {
         String phone;
         do {
-            phone = ConsoleUtil.readString("Enter " + label + " (digits, spaces, dashes, optional '+'): ");
+            phone = ConsoleUtil.readString("\nEnter " + label + " (digits, spaces, dashes, optional '+'): ");
             if (!UserValidator.isValidPhone(phone)) {
-                System.out.println("Invalid phone number format. Please try again.");
+                System.out.println("\nInvalid phone number format. Please try again.\n");
             }
         } while (!UserValidator.isValidPhone(phone));
         return phone;
@@ -302,7 +305,7 @@ public final class ConsoleUtil {
             String nickname = ConsoleUtil.readValidNickname("nickname");
 
             if (userManager.nickNameAlreadyExists(nickname)) {
-                System.out.println("This nickname is already in use. Please enter another one.");
+                System.out.println("\nThis nickname is already in use. Please enter another one.\n");
             } else {
                 return nickname;
             }
@@ -314,7 +317,7 @@ public final class ConsoleUtil {
             String nationalId = ConsoleUtil.readValidNationalId("National ID");
 
             if (userManager.nationalIdAlreadyExists(nationalId)) {
-                System.out.println("There is already a user associated with this National ID.");
+                System.out.println("\nThere is already a user associated with this National ID.\n");
             } else {
                 return nationalId;
             }
@@ -326,7 +329,7 @@ public final class ConsoleUtil {
             String email = ConsoleUtil.readValidEmail("email");
 
             if (userManager.emailAlreadyExists(email)) {
-                System.out.println("This email is already in use. Please enter another one.");
+                System.out.println("\nThis email is already in use. Please enter another one.\n");
             } else {
                 return email;
             }
@@ -338,7 +341,7 @@ public final class ConsoleUtil {
             String phoneNumber = ConsoleUtil.readValidPhone("phone number");
 
             if (userManager.phoneNumberAlreadyExists(phoneNumber)) {
-                System.out.println("This phone number is already in use. Please enter another one.");
+                System.out.println("\nThis phone number is already in use. Please enter another one.\n");
             } else {
                 return phoneNumber;
             }
@@ -356,7 +359,7 @@ public final class ConsoleUtil {
             if (year >= MIN_YEAR && year <= MAX_YEAR) {
                 return year;
             } else {
-                System.out.println("Please enter a valid year between " + MIN_YEAR + " and " + MAX_YEAR + ".");
+                System.out.println("\nPlease enter a valid year between " + MIN_YEAR + " and " + MAX_YEAR + ".\n");
             }
         }
     }
@@ -368,12 +371,41 @@ public final class ConsoleUtil {
         do {
             seatNumber = readInt(prompt);
             if (seatNumber <= 0) {
-                System.out.println("Seat number cannot be negative or zero.");
+                System.out.println("\nSeat number cannot be negative or zero.\n");
             } else {
-                System.out.println("Selected seat number: " + seatNumber);
+                System.out.println("\nSelected seat number: " + seatNumber);
                 return seatNumber;
             }
         } while (true);
+    }
+
+    // Room:
+
+    public static int readPositiveSeats(String prompt) {
+        int seats;
+        do {
+            seats = ConsoleUtil.readInt(prompt);
+            if (seats <= 0) {
+                System.out.println("Error: The number of seats must be a positive integer.");
+            }
+        } while (seats <= 0);
+        return seats;
+    }
+
+    public static int[] readSeatRange() {
+        int minSeats;
+        int maxSeats;
+
+        do {
+            minSeats = readPositiveSeats("Enter minimum number of seats: ");
+            maxSeats = readInt("Enter maximum number of seats: ");
+
+            if (maxSeats < minSeats) {
+                System.out.println("\nMaximum seats cannot be less than minimum seats. Please try again.\n");
+            }
+        } while (maxSeats < minSeats);
+
+        return new int[]{minSeats, maxSeats};
     }
 
     // Ticket:
@@ -383,9 +415,9 @@ public final class ConsoleUtil {
         do {
             price = readDouble(prompt);
             if (price <= 0) {
-                System.out.println("Price must be greater than $0.00. Please try again.");
+                System.out.println("\nPrice must be greater than $0.00. Please try again.\n");
             } else {
-                System.out.println("Price entered: $" + String.format("%.2f", price));
+                System.out.println("\nPrice entered: $" + String.format("%.2f", price) + ".\n");
                 return price;
             }
         } while (true);

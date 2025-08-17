@@ -1,5 +1,4 @@
 package com.cinemamanager.auth;
-
 import com.cinemamanager.manager.user.UserManager;
 import com.cinemamanager.model.people.User;
 
@@ -25,7 +24,7 @@ public final class LoginService {
         User user = optionalUser.get();
 
         if (!user.getAccount().isActive()) {
-            System.out.println("Login failed: account is inactive.");
+            System.out.println("\nLogin failed: account is inactive.\n");
             return false;
         }
 

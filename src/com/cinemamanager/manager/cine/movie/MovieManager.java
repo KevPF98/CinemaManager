@@ -11,6 +11,7 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.time.Duration;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 public final class MovieManager {
@@ -44,12 +45,11 @@ public final class MovieManager {
         List <Movie> notShowingMovies = getNotShowingMovies();
 
         if (notShowingMovies.isEmpty()) {
-            System.out.println("There are no movies available to delete.");
+            System.out.println("\nThere are no movies available to delete.\n");
             return;
         }
 
-        System.out.println("Only movies that are not currently showing can be deleted:");
-        displayMovieList(notShowingMovies);
+        System.out.println("\nOnly movies that are not currently showing can be deleted: \n");
 
         Optional <Movie> optionalMovie = selectMovieByIdFromList(notShowingMovies);
         optionalMovie.ifPresent(movie -> {
@@ -68,63 +68,6 @@ public final class MovieManager {
                 .findFirst();
     }
 
-    public List <Movie> searchMoviesByTitleRegex (String regex) {
-        Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
-        return movieStorageManager.findBy(movie -> pattern.matcher(movie.getTitle()).find());
-    }
-
-    public List <Movie> searchMoviesByAudio (Language desiredAudio) {
-        return movieStorageManager.findBy(m -> m.getAudio().equals(desiredAudio));
-    }
-
-    public List <Movie> searchMoviesBySubs (Language desiredSubs) {
-        return movieStorageManager.findBy(m -> m.getSubtitles().equals(desiredSubs));
-    }
-
-    public List<Movie> searchMoviesWithMinDuration (Duration minDuration) {
-        return movieStorageManager.findBy(m -> m.getDuration().compareTo(minDuration) >= 0);
-    }
-
-    public List<Movie> searchMoviesWithMaxDuration (Duration maxDuration) {
-        return movieStorageManager.findBy(m -> m.getDuration().compareTo(maxDuration) <= 0);
-    }
-
-    public List <Movie> searchMoviesByProducerRegex (String regex) {
-        Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
-        return movieStorageManager.findBy(movie -> pattern.matcher(movie.getProducer()).find());
-    }
-
-    public List <Movie> searchMoviesByDirectorRegex (String regex) {
-        Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
-        return movieStorageManager.findBy(movie -> pattern.matcher(movie.getDirector()).find());
-    }
-
-    public List <Movie> searchMoviesReleasedFrom (int year) {
-        return movieStorageManager.findBy(m -> m.getReleaseYear() >= year);
-    }
-
-    public List <Movie> searchMoviesFrom (Country country) {
-        return movieStorageManager.findBy(m -> m.getCountry().equals(country));
-    }
-
-    public List <Movie> searchMoviesByAgeRating (AgeRating ageRating) {
-        return movieStorageManager.findBy(m -> m.getAgeRating().equals(ageRating));
-    }
-
-    public List <Movie> searchMoviesByGenre (MovieGenre movieGenre) {
-        return movieStorageManager.findBy(m -> m.getGenre().equals(movieGenre));
-    }
-
-    public List <Movie> searchMoviesByStatus (MovieStatus movieStatus) {
-        return movieStorageManager.findBy(m -> m.getStatus().equals(movieStatus));
-    }
-
-    public List <Movie> getNotShowingMovies () {
-        List <Movie> notShowingMovies = new ArrayList<>(searchMoviesByStatus(MovieStatus.UNAVAILABLE));
-        notShowingMovies.addAll(searchMoviesByStatus(MovieStatus.COMING_SOON));
-        return notShowingMovies;
-    }
-
     public List <Movie> findAllMovies () {
         return movieStorageManager.findAll();
     }
@@ -135,8 +78,19 @@ public final class MovieManager {
         }
     }
 
+    public void displayMovieListWithId (List <Movie> movieList) {
+        for (Movie movie : movieList) {
+            System.out.println("ID: " + movie.getId());
+            System.out.println(movie);
+        }
+    }
+
     public List <Movie> getMovieListings () {
         return movieStorageManager.findBy(m -> m.getStatus().equals(MovieStatus.NOW_SHOWING));
+    }
+
+    public void showAllMovies () {
+        displayMovieList(findAllMovies());
     }
 
     public void showMovieListings () {
@@ -151,7 +105,9 @@ public final class MovieManager {
             Movie movieToUpdate = optionalMovieToUpdate.get();
 
             String prompt = """
+                            
                             What do you want to do?
+                            
                             [1]  Change the title.
                             [2]  Change the audio language.
                             [3]  Change the subtitle language.
@@ -165,7 +121,7 @@ public final class MovieManager {
                             [11] Change all.
                             
                             [0] Back.
-                            """;
+                            >""" + " ";
 
             Set <String> validOptions = new HashSet<>();
             for (int i = 0; i <= 11; i++) {
@@ -176,52 +132,52 @@ public final class MovieManager {
             switch (chosenOption) {
                 case "1"  -> {
                     changeTitle(movieToUpdate);
-                    System.out.println("Title changed successfully!");
+                    System.out.println("\nTitle changed successfully!\n");
                     saveToFile();
                 }
                 case "2"  -> {
                     changeAudioLanguage(movieToUpdate);
-                    System.out.println("Language changed successfully!");
+                    System.out.println("\nLanguage changed successfully!\n");
                     saveToFile();
                 }
                 case "3"  -> {
                     changeSubLanguage(movieToUpdate);
-                    System.out.println("Subtitle changed successfully!");
+                    System.out.println("\nSubtitle changed successfully!\n");
                     saveToFile();
                 }
                 case "4"  -> {
                     changeDuration(movieToUpdate);
-                    System.out.println("Duration of the movie changed successfully!");
+                    System.out.println("\nDuration of the movie changed successfully!\n");
                     saveToFile();
                 }
                 case "5"  -> {
                     changeProducer(movieToUpdate);
-                    System.out.println("Producer changed successfully!");
+                    System.out.println("\nProducer changed successfully!\n");
                     saveToFile();
                 }
                 case "6"  -> {
                     changeDirector(movieToUpdate);
-                    System.out.println("Director changed successfully!");
+                    System.out.println("\nDirector changed successfully!\n");
                     saveToFile();
                 }
                 case "7"  -> {
                     changeYear(movieToUpdate);
-                    System.out.println("Release year changed successfully!");
+                    System.out.println("\nRelease year changed successfully!\n");
                     saveToFile();
                 }
                 case "8"  -> {
                     changeCountry(movieToUpdate);
-                    System.out.println("Country of origin changed successfully!");
+                    System.out.println("\nCountry of origin changed successfully!\n");
                     saveToFile();
                 }
                 case "9"  -> {
                     changeAgeRating(movieToUpdate);
-                    System.out.println("Age rating changed successfully!");
+                    System.out.println("\nAge rating changed successfully!\n");
                     saveToFile();
                 }
                 case "10" -> {
                     changeGenre(movieToUpdate);
-                    System.out.println("Genre changed successfully!");
+                    System.out.println("\nGenre changed successfully!\n");
                     saveToFile();
                 }
                 case "11" -> changeAll(movieToUpdate);
@@ -232,25 +188,154 @@ public final class MovieManager {
 
     public Optional <Movie> selectMovieByIdFromList(List <Movie> movieList) {
         if (movieList.isEmpty()) {
-            System.out.println("No movies available to select.");
+            System.out.println("\nNo movies available to select.\n");
             return Optional.empty();
         }
 
         while (true) {
-            displayMovieList(movieList);
-
-            int id = ConsoleUtil.readInt("Enter the ID of the movie to select: ");
+            displayMovieListWithId(movieList);
+            int id = ConsoleUtil.readInt("\nEnter the ID of the movie to select: ");
             Optional <Movie> optionalSelected = findMovieById (id, movieList);
 
             if (optionalSelected.isPresent()) return optionalSelected;
 
-            System.out.println("The selected movie ID is not in the current list.");
-            if (!ConsoleUtil.confirm("You can try searching with a different ID.")) return Optional.empty();
+            System.out.println("\nThe selected movie ID is not in the current list.");
+            if (!ConsoleUtil.confirm("Do you want to search with a different ID?")) return Optional.empty();
         }
     }
 
+    public void searchByIdAndDisplay() {
+        int id = ConsoleUtil.readInt("\nEnter the movie ID you wish to find: ");
+        displaySearchResult(findMovieById(id).stream().toList(), System.out::println, "\nMovie not found.\n");
+    }
+
+    public void searchByTitleAndDisplay() {
+        String title = ConsoleUtil.readCapitalizedString("\nEnter the movie title you wish to find: ");
+        displaySearchResult(searchMoviesByTitleRegex(title), System.out::println, "\nNo movies were found.\n");
+    }
+
+    public void searchByAudioAndDisplay() {
+        Language audio = ConsoleUtil.readEnum(Language.class, "\nSelect the audio language: ");
+        displaySearchResult(searchMoviesByAudio(audio), System.out::println, "\nNo movies were found.\n");
+    }
+
+    public void searchBySubsAndDisplay() {
+        Language subs = ConsoleUtil.readEnum(Language.class, "\nSelect the subtitle language: ");
+        displaySearchResult(searchMoviesBySubs(subs), System.out::println, "\nNo movies were found.\n");
+    }
+
+    public void searchWithMinDurationAndDisplay() {
+        Duration min = ConsoleUtil.readDuration("\nEnter the minimum duration: ");
+        displaySearchResult(searchMoviesWithMinDuration(min), System.out::println, "\nNo movies were found.\n");
+    }
+
+    public void searchWithMaxDurationAndDisplay() {
+        Duration max = ConsoleUtil.readDuration("\nEnter the maximum duration: ");
+        displaySearchResult(searchMoviesWithMaxDuration(max), System.out::println, "\nNo movies were found.\n");
+    }
+
+    public void searchByProducerAndDisplay() {
+        String producer = ConsoleUtil.readCapitalizedString("\nEnter the producer name: ");
+        displaySearchResult(searchMoviesByProducerRegex(producer), System.out::println, "\nNo movies were found.\n");
+    }
+
+    public void searchByDirectorAndDisplay() {
+        String director = ConsoleUtil.readCapitalizedString("\nEnter the director name: ");
+        displaySearchResult(searchMoviesByDirectorRegex(director), System.out::println, "\nNo movies were found.\n");
+    }
+
+    public void searchReleasedFromAndDisplay() {
+        int year = ConsoleUtil.readInt("\nEnter the starting release year: ");
+        displaySearchResult(searchMoviesReleasedFrom(year), System.out::println, "\nNo movies were found.\n");
+    }
+
+    public void searchFromCountryAndDisplay() {
+        Country country = ConsoleUtil.readEnum(Country.class, "Select the country");
+        displaySearchResult(searchMoviesFrom(country), System.out::println, "\nNo movies were found.\n");
+    }
+
+    public void searchByAgeRatingAndDisplay() {
+        AgeRating ageRating = ConsoleUtil.readEnum(AgeRating.class, "Select the age rating");
+        displaySearchResult(searchMoviesByAgeRating(ageRating), System.out::println, "\nNo movies were found.\n");
+    }
+
+    public void searchByGenreAndDisplay() {
+        MovieGenre genre = ConsoleUtil.readEnum(MovieGenre.class, "Select the genre");
+        displaySearchResult(searchMoviesByGenre(genre), System.out::println, "\nNo movies were found.\n");
+    }
+
+    public void searchByStatusAndDisplay() {
+        MovieStatus status = ConsoleUtil.readEnum(MovieStatus.class, "Select the movie status");
+        displaySearchResult(searchMoviesByStatus(status), System.out::println, "\nNo movies were found.\n");
+    }
+
+    private List <Movie> getNotShowingMovies () {
+        List <Movie> notShowingMovies = new ArrayList<>(searchMoviesByStatus(MovieStatus.UNAVAILABLE));
+        notShowingMovies.addAll(searchMoviesByStatus(MovieStatus.COMING_SOON));
+        return notShowingMovies;
+    }
+
+    private List <Movie> searchMoviesByTitleRegex (String regex) {
+        Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+        return movieStorageManager.findBy(movie -> pattern.matcher(movie.getTitle()).find());
+    }
+
+    private List <Movie> searchMoviesByAudio (Language desiredAudio) {
+        return movieStorageManager.findBy(m -> m.getAudio().equals(desiredAudio));
+    }
+
+    private List <Movie> searchMoviesBySubs (Language desiredSubs) {
+        return movieStorageManager.findBy(m -> m.getSubtitles().equals(desiredSubs));
+    }
+
+    private List <Movie> searchMoviesWithMinDuration (Duration minDuration) {
+        return movieStorageManager.findBy(m -> m.getDuration().compareTo(minDuration) >= 0);
+    }
+
+    private List <Movie> searchMoviesWithMaxDuration (Duration maxDuration) {
+        return movieStorageManager.findBy(m -> m.getDuration().compareTo(maxDuration) <= 0);
+    }
+
+    private List <Movie> searchMoviesByProducerRegex (String regex) {
+        Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+        return movieStorageManager.findBy(movie -> pattern.matcher(movie.getProducer()).find());
+    }
+
+    private List <Movie> searchMoviesByDirectorRegex (String regex) {
+        Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+        return movieStorageManager.findBy(movie -> pattern.matcher(movie.getDirector()).find());
+    }
+
+    private List <Movie> searchMoviesReleasedFrom (int year) {
+        return movieStorageManager.findBy(m -> m.getReleaseYear() >= year);
+    }
+
+    private List <Movie> searchMoviesFrom (Country country) {
+        return movieStorageManager.findBy(m -> m.getCountry().equals(country));
+    }
+
+    private List <Movie> searchMoviesByAgeRating (AgeRating ageRating) {
+        return movieStorageManager.findBy(m -> m.getAgeRating().equals(ageRating));
+    }
+
+    private List <Movie> searchMoviesByGenre (MovieGenre movieGenre) {
+        return movieStorageManager.findBy(m -> m.getGenre().equals(movieGenre));
+    }
+
+    private List <Movie> searchMoviesByStatus (MovieStatus movieStatus) {
+        return movieStorageManager.findBy(m -> m.getStatus().equals(movieStatus));
+    }
+
+    private <T> void displaySearchResult (Collection<T> results, Consumer<T> onFound, String emptyMessage) {
+        if (results == null || results.isEmpty()) {
+            System.out.println(emptyMessage);
+            return;
+        }
+        results.forEach(onFound);
+    }
+
     private void changeTitle (Movie movieToUpdate) {
-        String newTitle = ConsoleUtil.readCapitalizedString("Enter the new title: ");
+        String newTitle = ConsoleUtil.readCapitalizedString("\nEnter the new title: ");
         movieToUpdate.setTitle(newTitle);
     }
 
@@ -265,22 +350,22 @@ public final class MovieManager {
     }
 
     private void changeDuration (Movie movieToUpdate) {
-        Duration newDuration = ConsoleUtil.readDuration("Enter the new movie duration: ");
+        Duration newDuration = ConsoleUtil.readDuration("\nEnter the new movie duration: ");
         movieToUpdate.setDuration(newDuration);
     }
 
     private void changeProducer (Movie movieToUpdate) {
-        String newProducer = ConsoleUtil.readCapitalizedString("Enter the new producer name: ");
+        String newProducer = ConsoleUtil.readCapitalizedString("\nEnter the new producer name: ");
         movieToUpdate.setProducer(newProducer);
     }
 
     private void changeDirector (Movie movieToUpdate) {
-        String newDirector = ConsoleUtil.readCapitalizedString("Enter the new director name: ");
+        String newDirector = ConsoleUtil.readCapitalizedString("\nEnter the new director name: ");
         movieToUpdate.setDirector(newDirector);
     }
 
     private void changeYear (Movie movieToUpdate) {
-        int newYear = ConsoleUtil.readInt("Enter the new year: ");
+        int newYear = ConsoleUtil.readInt("\nEnter the new year: ");
         movieToUpdate.setReleaseYear(newYear);
     }
 
@@ -310,9 +395,9 @@ public final class MovieManager {
         changeCountry(movieToUpdate);
         changeAgeRating(movieToUpdate);
         changeGenre(movieToUpdate);
-        System.out.println("Your updated movie:\n" + movieToUpdate);
-        if (ConsoleUtil.confirm("You are about to save these changes")) {
-            System.out.println("Everything changed successfully!");
+        System.out.println("\nYour updated movie:\n" + movieToUpdate);
+        if (ConsoleUtil.confirm("\nDo you want to save these changes?")) {
+            System.out.println("\nEverything changed successfully!\n");
             saveToFile();
         }
     }

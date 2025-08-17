@@ -7,7 +7,6 @@ import com.cinemamanager.model.cine.Room;
 import com.cinemamanager.util.common.JsonUtil;
 import com.cinemamanager.util.common.StorageManager;
 import com.cinemamanager.util.cine.room.RoomFactory;
-import com.cinemamanager.util.cine.room.RoomValidator;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.List;
@@ -29,38 +28,36 @@ public final class RoomManager {
         try {
             roomStorageManager.add (newRoom, false);
             saveToFile();
-            System.out.println("Room registered successfully!");
+            System.out.println("\nRoom registered successfully!\n");
         } catch (DuplicateElementException e) {
-            System.err.println("To add this room to the system, you must first remove the one associated with the number: " + newRoom.getId());
+            System.err.println("\nTo add this room to the system, you must first remove the one associated with the number: " + newRoom.getId() + ".\n");
         }
     }
 
-    public void deleteRoomById (int id) {
-        // VALIDAR PRIMERO QUE LA SALA NO TENGA FUNCIONES.
+    public void deleteRoom (int id) {
         roomStorageManager.delete(id);
         saveToFile();
     }
 
-    public void deactivateRoom (Room room) {
-        if (!room.isActive()) {
-            System.out.println("The room has already been deactivated.");
-            return;
-        }
+    public void deleteRoom (Room room) {
+        roomStorageManager.delete(room);
+        saveToFile();
+    }
 
-        // VALIDAR PRIMERO QUE LA SALA NO TENGA FUNCIONES.
+    public void deactivateRoom (Room room) {
         room.deactivate();
-        System.out.println("Room has been disabled successfully.");
+        System.out.println("\nRoom has been disabled successfully.\n");
         saveToFile();
     }
 
     public void activateRoom (Room room) {
         if (room.isActive()) {
-            System.out.println("The room is already active.");
+            System.out.println("\nThe room is already active.\n");
             return;
         }
 
         room.activate();
-        System.out.println("Room has been activated successfully.");
+        System.out.println("\nRoom has been activated successfully.\n");
         saveToFile();
     }
 
@@ -87,40 +84,31 @@ public final class RoomManager {
         return new TreeSet<> (inactiveRooms);
     }
 
+    public TreeSet <Room> getRoomsByCapacity () {
+        int[] range = ConsoleUtil.readSeatRange();
+        int min = range[0];
+        int max = range[1];
+        List <Room> listByCapacity = roomStorageManager.findBy(r -> r.getTotalSeats() >= min && r.getTotalSeats() <= max);
+        return new TreeSet<>(listByCapacity);
+    }
+
     public void showRooms (TreeSet <Room> rooms) {
         for (Room room : rooms) {
             System.out.println(room);
         }
     }
 
-    public void showActiveRooms (TreeSet <Room> roomSet) {
-        showRooms(getActiveRooms());
-    }
-
-    public void showInactiveRooms () {
-        showRooms(getInactiveRooms());
-    }
-
-    public void updateRoom () {
-        TreeSet <Room> rooms = new TreeSet<> (getActiveRooms());
-
-        Optional <Room> optionalRoomToUpdate = selectRoomByIdFromSet(rooms);
-        if (optionalRoomToUpdate.isEmpty()) return;
-        Room roomToUpdate = optionalRoomToUpdate.get();
-
-//        if (gestorFunciones.salaEnUso(sala)) {
-//            System.out.println("ATENCION: La sala que desea modificar tiene funciones activas");
-//        }
-//  HAGAMOS ESTA VALIDACION DESDE EL MENU; ROOM MANAGER NO PUEDE CONOCER A SHOWTIME MANAGER
-//  PERO EL MENU SI CONOCE A AMBAS.
+    public void updateRoom (Room roomToUpdate) {
 
         String prompt = """
-        What do you want to do?
-        [1]  Change the room type.
-        [2]  Change the room capacity.
-
-        [0] Back.
-        """;
+                        
+                        What do you want to do?
+                        
+                        [1]  Change the room type.
+                        [2]  Change the room capacity.
+                
+                        [0] Back.
+                        >""" + " ";
 
         Set<String> validOptions = Set.of("0", "1", "2");
         String chosenOption = ConsoleUtil.readOption(prompt, validOptions);
@@ -133,23 +121,35 @@ public final class RoomManager {
         }
     }
 
+    public void displayRoomsOrMessage(TreeSet<Room> rooms) {
+        if (rooms.isEmpty()) {
+            System.out.println("\nNo auditoriums found.\n");
+        } else {
+            showRooms(rooms);
+        }
+    }
+
     public Optional <Room> selectRoomByIdFromSet (TreeSet <Room> roomSet) {
         if (roomSet.isEmpty()) {
-            System.out.println("No rooms available to select.");
+            System.out.println("\nNo rooms available to select.\n");
             return Optional.empty();
         }
 
-        System.out.println("Available rooms:");
-        showActiveRooms(roomSet);
+        System.out.println("\nAuditoriums:");
+        showRooms(roomSet);
 
+        return selectValidRoomFromSet(roomSet);
+    }
+
+    public Optional <Room> selectValidRoomFromSet (TreeSet <Room> roomSet) {
         while (true) {
-            int roomNumber = ConsoleUtil.readInt("Enter the number of the room to select: ");
+            int roomNumber = ConsoleUtil.readInt("\nEnter the number of the room to select: ");
             Optional <Room> optionalRoomFound = findRoomByIdInSet(roomSet, roomNumber);
             if (optionalRoomFound.isPresent()) {
                 return optionalRoomFound;
             } else {
-                System.err.println("Room with number " + roomNumber + " not found.");
-                if (!ConsoleUtil.confirm("You can try entering a different room number.")) return Optional.empty();
+                System.err.println("\nRoom with number " + roomNumber + " not found.\n");
+                if (!ConsoleUtil.confirm("\nDo you want to try with another room number?")) return Optional.empty();
             }
         }
     }
@@ -157,14 +157,14 @@ public final class RoomManager {
     private void changeRoomType (Room roomToUpdate) {
         RoomType newType = ConsoleUtil.readEnum(RoomType.class, "Select the new room type");
         roomToUpdate.setType(newType);
-        System.out.println("Room type updated successfully!");
+        System.out.println("\nRoom type updated successfully!\n");
         saveToFile();
     }
 
     private void changeRoomCapacity (Room roomToUpdate) {
-        int newCapacity = RoomValidator.readPositiveSeats("Enter the new number of seats in the room: ");
+        int newCapacity = ConsoleUtil.readPositiveSeats("Enter the new number of seats in the room: ");
         roomToUpdate.setTotalSeats(newCapacity);
-        System.out.println("Room capacity updated successfully!");
+        System.out.println("\nRoom capacity updated successfully!\n");
         saveToFile();
     }
 

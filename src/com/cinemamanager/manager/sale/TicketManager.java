@@ -25,15 +25,12 @@ public final class TicketManager {
 
     private final MovieManager movieManager;
     private final ShowtimeManager showtimeManager;
-    private final SeatManager seatManager;
 
     public TicketManager (MovieManager movieManager,
-                          ShowtimeManager showtimeManager,
-                          SeatManager seatManager) {
+                          ShowtimeManager showtimeManager) {
         this.ticketStorageManager = new StorageManager<>(CollectionType.ARRAY_LIST);
         this.movieManager = movieManager;
         this.showtimeManager = showtimeManager;
-        this.seatManager = seatManager;
 
         loadFromFile();
 
@@ -47,10 +44,10 @@ public final class TicketManager {
         List <Ticket> tickets = new ArrayList<>();
 
         do {
-            System.out.println("Generating new tickets...");
+            System.out.println("\nGenerating new tickets...\n");
             List <Ticket> newTickets = createTicketsForShowtime();
             tickets.addAll(newTickets);
-        } while (ConsoleUtil.confirm("Do you want to reserve seats for another showtime?"));
+        } while (ConsoleUtil.confirm("\nDo you want to reserve seats for another showtime?"));
 
         for (Ticket ticket : tickets) {
             try {
@@ -60,11 +57,15 @@ public final class TicketManager {
             }
         }
 
-        System.out.println("A total of " + tickets.size() + " tickets have been generated.");
+        System.out.println("\nA total of " + tickets.size() + " tickets have been generated.\n");
         for (Ticket ticket : tickets) {
             System.out.println(ticket);
         }
         return tickets;
+    }
+
+    public List <Ticket> getAllTickets () {
+        return ticketStorageManager.findAll();
     }
 
     private List <Ticket> createTicketsForShowtime() {
@@ -74,8 +75,10 @@ public final class TicketManager {
 
         Movie selectedMovie = optionalSelectedMovie.get();
         List <Showtime> showtimesByMovie = showtimeManager.getAvailableShowtimesByMovie(selectedMovie);
-        Showtime selectedSt = showtimeManager.selectShowtimeByIdFromList(showtimesByMovie);
-        if (selectedSt == null) return tickets;
+        Optional <Showtime> optionalShowtime = showtimeManager.selectShowtimeByIdFromList(showtimesByMovie);
+        if (optionalShowtime.isEmpty()) return tickets;
+
+        Showtime selectedSt = optionalShowtime.get();
 
         while (true) {
             Optional <Seat> seatOptional = showtimeManager.reserveSeat(selectedSt);
@@ -84,7 +87,7 @@ public final class TicketManager {
             Ticket newTicket = new Ticket(nextId++, selectedSt, seatOptional.get().getId());
             tickets.add(newTicket);
 
-            if (!ConsoleUtil.confirm("Please confirm if you want to reserve another seat")) break;
+            if (!ConsoleUtil.confirm("\nDo you want to reserve another seat?")) break;
         }
 
         return tickets;

@@ -18,7 +18,7 @@ public final class UserFactory {
     }
 
     private static User createUserInternal(int userId, UserManager userManager, String nationalId) {
-        System.out.println("Creating a new user...");
+        System.out.println("\nCreating a new user...\n");
 
         Account account = createAccount(userManager);
         PersonalData personalData = createPersonalData(userManager, nationalId);

@@ -1,4 +1,5 @@
 package com.cinemamanager.manager.user;
+import com.cinemamanager.auth.Session;
 import com.cinemamanager.util.common.enums.CollectionType;
 import com.cinemamanager.enums.user.Role;
 import com.cinemamanager.util.common.exception.DuplicateElementException;
@@ -89,15 +90,15 @@ public final class UserManager {
         boolean isDeactivated = !accountToRevokePermissions.isActive();
         boolean isNotAdmin = accountToRevokePermissions.getRole().equals(Role.EMPLOYEE);
         if (isDeactivated) {
-            System.out.println("Permissions cannot be revoked to a deactivated account.");
+            System.out.println("\nPermissions cannot be revoked to a deactivated account.\n");
             return;
         }
         if (isNotAdmin) {
-            System.out.println("The user is not an admin.");
+            System.out.println("\nThe user is not an admin.\n");
             return;
         }
         accountToRevokePermissions.setRole(Role.EMPLOYEE);
-        System.out.println("Permissions revoked successfully.");
+        System.out.println("\nPermissions revoked successfully.\n");
         saveToFile();
     }
 
@@ -113,7 +114,7 @@ public final class UserManager {
         String nationalId = ConsoleUtil.readValidNationalId("National ID");
         return findUserByNationalId(nationalId)
                 .or(() -> ConsoleUtil.confirm(
-                                "No user found with that National ID. Next, you can create a user corresponding to that National ID."
+                                "\nNo user found.\nDo you want to create a new user with that National ID?"
                         )
                                 ? addUser(nationalId)
                                 : Optional.empty()
@@ -139,7 +140,7 @@ public final class UserManager {
         String confirm;
         do {
             newPassword = ConsoleUtil.readValidPassword("new password");
-            confirm = ConsoleUtil.readString("Confirm new password: ");
+            confirm = ConsoleUtil.readString("\nConfirm new password: ");
             if (!newPassword.equals(confirm)) {
                 System.out.println("\nPasswords do not match. Try again.\n");
             }
@@ -163,7 +164,7 @@ public final class UserManager {
     public void updateUser (int id) {
         Optional <User> optionalUserToUpdate = findUserById(id);
         if (optionalUserToUpdate.isEmpty()) {
-            System.out.println("User not found.");
+            System.out.println("\nUser not found.\n");
             return;
         }
 
@@ -171,18 +172,20 @@ public final class UserManager {
         boolean isDeactivated = !userToUpdate.getAccount().isActive();
 
         if (isDeactivated) {
-            System.out.println("A deactivated user cannot be modified.");
+            System.out.println("\nA deactivated user cannot be modified.\n");
             return;
         }
 
-        System.out.println("User found:\n" + userToUpdate);
+        System.out.println("\nUser found:\n" + userToUpdate);
         String prompt = """
+                        
                         What do you want to do?
+                        
                         [1] Update account data.
                         [2] Update personal data.
                         
                         [0] Back.
-                        """;
+                        >""" + " ";
 
         Set<String> validOptions = Set.of("0", "1", "2");
         String chosenOption = ConsoleUtil.readOption(prompt, validOptions);
@@ -217,12 +220,13 @@ public final class UserManager {
 
     private void updateAccountData(User userToUpdate) {
         String prompt = """
+                        
                         What do you want to do?
                         [1] Change nickname.
                         [2] Change password.
                         
                         [0] Back.
-                        """;
+                        >""" + " ";
         Set<String> validOptions = Set.of("0", "1", "2");
         String chosenOption = ConsoleUtil.readOption(prompt, validOptions);
 
@@ -236,34 +240,40 @@ public final class UserManager {
     private void changeNickname(User userToUpdate) {
         String newNickname = ConsoleUtil.readValidNickname("new nickname");
         if (nickNameAlreadyExists(newNickname)) {
-            System.out.println("The nickname is already in use.");
+            System.out.println("\nThe nickname is already in use.");
+            System.out.println("Operation aborted.\n");
         } else {
             userToUpdate.getAccount().setNickname(newNickname);
-            System.out.println("Nickname successfully changed to: " + newNickname);
+            System.out.println("\nNickname successfully changed to: " + newNickname + ".\n");
             saveToFile();
         }
     }
 
     private void changePassword(User userToUpdate) {
-        while (true) {
-            String input = ConsoleUtil.readString("Please enter the current password, or type 'ESC' to cancel.");
-            if (input.equalsIgnoreCase("ESC")) {
-                break;
-            }
-            if (input.equals(userToUpdate.getAccount().getPassword())) {
-                String newPassword = ConsoleUtil.readValidPassword("new password");
-                userToUpdate.getAccount().setPassword(newPassword);
-                System.out.println("Password successfully changed.");
-                saveToFile();
-                break;
-            } else {
-                System.out.println("Incorrect password. Please try again.");
+        boolean isSelf = Session.getActiveUser().equals(userToUpdate);
+
+        if (isSelf) {
+            while (true) {
+                String input = ConsoleUtil.readString(
+                        "\nPlease enter your current password, or type 'ESC' to cancel: "
+                );
+                if (input.equalsIgnoreCase("ESC")) return;
+
+                if (input.equals(userToUpdate.getAccount().getPassword())) break;
+                System.out.println("\nIncorrect password. Please try again.\n");
             }
         }
+
+        String newPassword = ConsoleUtil.readValidPassword("new password");
+        userToUpdate.getAccount().setPassword(newPassword);
+
+        System.out.println("\nPassword successfully changed.\n");
+        saveToFile();
     }
 
     private void updatePersonalData (User userToUpdate) {
         String prompt = """
+                        
                         What do you want to do?
                         [1] Change full name.
                         [2] Change email.
@@ -271,7 +281,7 @@ public final class UserManager {
                         [4] Change all.
                         
                         [0] Back.
-                        """;
+                        >""" + " ";
         Set<String> validOptions = Set.of("0", "1", "2", "3", "4");
         String chosenOption = ConsoleUtil.readOption(prompt, validOptions);
 
@@ -289,18 +299,19 @@ public final class UserManager {
         String newLastName = ConsoleUtil.readValidName("the new last name");
         userToUpdate.getPersonalData().setName(newFirstName);
         userToUpdate.getPersonalData().setLastName(newLastName);
-        System.out.println("Full name successfully changed.\n");
+        System.out.println("\nFull name successfully changed.\n");
         saveToFile();
     }
 
     private void changeEmail (User userToUpdate) {
         String newEmail = ConsoleUtil.readValidEmail("new email");
         if (emailAlreadyExists(newEmail)) {
-            System.out.println("The email is already in use.");
+            System.out.println("\nThe email is already in use.\n");
+            showAbortMessage();
         }
         else {
             userToUpdate.getPersonalData().setEmail(newEmail);
-            System.out.println("Email successfully changed.\n");
+            System.out.println("\nEmail successfully changed.\n");
             saveToFile();
         }
     }
@@ -308,11 +319,12 @@ public final class UserManager {
     private void changePhoneNumber (User userToUpdate) {
         String newPhoneNumber = ConsoleUtil.readValidPhone("new phone numer");
         if (phoneNumberAlreadyExists(newPhoneNumber)) {
-            System.out.println("There is already a user associated with this phone seatNumber.");
+            System.out.println("\nThere is already a user associated with this phone seatNumber.");
+            showAbortMessage();
         }
         else {
             userToUpdate.getPersonalData().setPhoneNumber(newPhoneNumber);
-            System.out.println("Phone seatNumber successfully changed.\n");
+            System.out.println("\nPhone seatNumber successfully changed.\n");
             saveToFile();
         }
     }
@@ -321,6 +333,10 @@ public final class UserManager {
         changeFullName(userToUpdate);
         changeEmail(userToUpdate);
         changePhoneNumber(userToUpdate);
+    }
+
+    private void showAbortMessage () {
+        System.out.println("\nOperation aborted.\n");
     }
 
     private void loadFromFile () {
@@ -356,10 +372,10 @@ public final class UserManager {
         try {
             userStorageManager.add(founder, true);
             System.out.println("\nDefault founder account created. Please log in with:");
-            System.out.println("Nickname: founder");
-            System.out.println("Password: founder123\n");
+            System.out.println("\nNickname: founder\n");
+            System.out.println("\nPassword: founder123\n");
         } catch (DuplicateElementException e) {
-            System.err.println("Unexpected duplicate while creating founder: " + e.getMessage());
+            System.err.println("\nUnexpected duplicate while creating founder: " + e.getMessage() + ".\n");
         }
     }
 

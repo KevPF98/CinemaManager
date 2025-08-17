@@ -13,7 +13,7 @@ public final class ScheduleManager {
 
     public ScheduleManager (LocalTime openingTime, LocalTime closingTime) {
         if(openingTime.isAfter(closingTime)){
-            throw new IllegalArgumentException("The opening time must precede the closing time.");
+            throw new IllegalArgumentException("\nThe opening time must precede the closing time.\n");
         }
 
         this.weeklySchedule = new EnumMap<>(DayOfWeek.class);
@@ -27,11 +27,11 @@ public final class ScheduleManager {
 
     public Optional <TimeSlot> createTimeSlot(DayOfWeek day, Duration movieDuration) {
         // Ask the user for the start time
-        LocalTime startTime = ConsoleUtil.readTime("Enter start time");
+        LocalTime startTime = ConsoleUtil.readTime("\nEnter start time");
 
         // Validate that the time is within opening and closing hours
         if (startTime.isBefore(openingTime) || startTime.isAfter(closingTime)) {
-            System.out.println("Start time must be between " + openingTime + " and " + closingTime + ".");
+            System.out.println("\nStart time must be between " + openingTime + " and " + closingTime + ".\n");
             return Optional.empty();
         }
 
@@ -40,7 +40,7 @@ public final class ScheduleManager {
 
         // Validate that the time slot does not exceed closing time
         if (newTimeSlot.getEndTime().isAfter(closingTime)) {
-            System.out.println("The time slot ends after closing time: " + closingTime + ".");
+            System.out.println("\nThe time slot ends after closing time: " + closingTime + ".\n");
             return Optional.empty();
         }
 
@@ -48,13 +48,13 @@ public final class ScheduleManager {
         List<TimeSlot> dayTimeSlots = getTimeSlotsForDay(day);
         for (TimeSlot existing : dayTimeSlots) {
             if (overlaps(existing, newTimeSlot)) {
-                System.out.println("This time slot overlaps with an existing one.");
+                System.out.println("\nThis time slot overlaps with an existing one.\n");
                 return Optional.empty();
             }
         }
 
-        System.out.println("Time slot successfully created: " +
-                newTimeSlot.getStartTime() + " - " + newTimeSlot.getEndTime());
+        System.out.println("\nTime slot successfully created: " +
+                newTimeSlot.getStartTime() + " - " + newTimeSlot.getEndTime() + ".\n");
         return Optional.of(newTimeSlot);
     }
 
@@ -77,27 +77,27 @@ public final class ScheduleManager {
         return start1.isBefore(end2) && start2.isBefore(end1);
     }
 
+// LIST TIME SLOTS FOR A SELECTED DAY ---------------------------------------------------------
+
+    public void listTimeSlots() {
+        DayOfWeek selectedDay = ConsoleUtil.readEnum(DayOfWeek.class, "\nSelect the day to display time slots");
+
+        List <TimeSlot> timeSlots = getTimeSlotsForDay(selectedDay);
+        if (timeSlots.isEmpty()) {
+            System.out.println("\nNo time slots scheduled for " + ConsoleUtil.formatEnumName(selectedDay.name()) + ".\n");
+        } else {
+            System.out.println("\nTime slots for " + ConsoleUtil.formatEnumName(selectedDay.name()) + ":");
+            int count = 1;
+            for (TimeSlot timeslot : timeSlots) {
+                System.out.println("\nTime slot " + count++ + ": " + timeslot + ".\n");
+            }
+        }
+    }
+
 // GET TIME SLOTS FOR A SPECIFIC DAY ----------------------------------------------------------
 
     private List <TimeSlot> getTimeSlotsForDay(DayOfWeek day) {
         return weeklySchedule.get(day);
-    }
-
-// LIST TIME SLOTS FOR A SELECTED DAY ---------------------------------------------------------
-
-    public void listTimeSlots() {
-        DayOfWeek selectedDay = ConsoleUtil.readEnum(DayOfWeek.class, "Select the day to display time slots");
-
-        List <TimeSlot> timeSlots = getTimeSlotsForDay(selectedDay);
-        if (timeSlots.isEmpty()) {
-            System.out.println("No time slots scheduled for " + ConsoleUtil.formatEnumName(selectedDay.name()) + ".");
-        } else {
-            System.out.println("Time slots for " + ConsoleUtil.formatEnumName(selectedDay.name()) + ":");
-            int count = 1;
-            for (TimeSlot timeslot : timeSlots) {
-                System.out.println("Time slot " + count++ + ": " + timeslot);
-            }
-        }
     }
 
 }

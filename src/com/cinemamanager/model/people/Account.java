@@ -65,10 +65,11 @@ public final class Account {
 
     @Override
     public String toString() {
-        String separator =  "--------------------------\n";
+        String separator = "--------------------------\n";
+        String status = enabled ? "The user has an active account." : "The user does not have an active account.";
 
-        String string1 = enabled ? "The user has an active account.\n" : "The user does not have an active account.\n";
-        String string2 = role == Role.ADMIN ? "Role: admin.\n" : "Role: employee.\n";
-        return separator + string1 + string2;
+        String roleString = role.toString().toLowerCase();
+
+        return String.format("%s%s%nRole: %s.%n", separator, status, roleString);
     }
 }

@@ -8,7 +8,7 @@ public final class RoomFactory {
     public static Room createRoom () {
         int roomNumber = ConsoleUtil.readInt("Enter the room number: ");
         RoomType roomType = ConsoleUtil.readEnum(RoomType.class, "Enter the room type");
-        int totalSeats = RoomValidator.readPositiveSeats("Enter the number of seats in the room: ");
+        int totalSeats = ConsoleUtil.readPositiveSeats("Enter the number of seats in the room: ");
         return new Room(roomNumber, roomType, totalSeats);
     }
 

@@ -86,8 +86,8 @@ public final class Room implements Comparable <Room>, Identifiable <Integer> {
         return "-----------------\n" +
                 "Room number: " + roomNumber + ".\n" +
                 "Room type: " + ConsoleUtil.formatEnumName(type.name()) + ".\n" +
-                "Maximum capacity: " + totalSeats +
-                ".\n" +
+                "Maximum capacity: " + totalSeats + ".\n" +
+                "Status: " + (isActive() ? "active." : "inactive.") +
                 "\n-----------------\n";
     }
 

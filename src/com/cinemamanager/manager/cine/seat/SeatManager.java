@@ -9,17 +9,17 @@ public final class SeatManager {
 
     public static Optional <Seat> selectSeat(TreeSet <Seat> seats) {
         while (true) {
-            int number = ConsoleUtil.readValidSeat("Enter the number of the seat: ");
+            int number = ConsoleUtil.readValidSeat("\nEnter the number of the seat: ");
             Optional<Seat> optionalSelectedSeat = findSeatByNumber(seats, number);
             if (optionalSelectedSeat.isPresent()) {
                 if (!optionalSelectedSeat.get().isOccupied()) {
                     return optionalSelectedSeat;
                 }
-                System.out.println("The seat you are trying to select is occupied.");
+                System.out.println("\nThe seat you are trying to select is occupied.\n");
             } else {
-                System.out.println("Seat number not found.");
+                System.out.println("\nSeat number not found.\n");
             }
-            if (!ConsoleUtil.confirm("You can try a different seat number.")) return Optional.empty();
+            if (!ConsoleUtil.confirm("\nDo you want to try with another seat number?")) return Optional.empty();
         }
     }
 
@@ -36,13 +36,13 @@ public final class SeatManager {
         findSeatByNumber (seats, seatNumber).ifPresentOrElse(
                 seat -> {
                     if (seat.isOccupied()) {
-                        System.out.println("Error: the seat is already occupied.");
+                        System.out.println("\nError: the seat is already occupied.\n");
                     } else {
                         seat.setOccupied(true);
-                        System.out.println("Seat " + seatNumber + " has been occupied.");
+                        System.out.println("\nSeat " + seatNumber + " has been occupied.\n");
                     }
                 },
-                () -> System.out.println("Error: seat not found.")
+                () -> System.out.println("\nError: seat not found.\n")
         );
     }
 
@@ -50,13 +50,13 @@ public final class SeatManager {
         findSeatByNumber(seats, seatNumber).ifPresentOrElse(
                 seat -> {
                     if (!seat.isOccupied()) {
-                        System.out.println("Error: the seat is already free.");
+                        System.out.println("\nError: the seat is already free.\n");
                     } else {
                         seat.setOccupied(false);
-                        System.out.println("Seat " + seatNumber + " has been freed.");
+                        System.out.println("\nSeat " + seatNumber + " has been freed.\n");
                     }
                 },
-                () -> System.out.println("Error: seat not found.")
+                () -> System.out.println("\nError: seat not found.\n")
         );
     }
 

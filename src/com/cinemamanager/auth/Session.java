@@ -1,8 +1,8 @@
 package com.cinemamanager.auth;
-
 import com.cinemamanager.model.people.User;
 
 public final class Session {
+
     private static User activeUser;
 
     public static void startSession(User user) {

@@ -25,7 +25,7 @@ public final class StorageManager <ID, E extends Identifiable <ID>> implements I
                 collection = createCollection (collectionType);
                 break;
             case TREE_SET:
-                System.out.println("WARNING: Make sure your elements implement Comparable and override compareTo.");
+                //System.out.println("\nWARNING: Make sure your elements implement Comparable and override compareTo.\n");
                 collection = createCollection (collectionType);
                 break;
             case HASH_MAP:
@@ -33,7 +33,7 @@ public final class StorageManager <ID, E extends Identifiable <ID>> implements I
                 map = createMap (collectionType);
                 break;
             case TREE_MAP:
-                System.out.println("WARNING: Make sure your keys implement Comparable and override compareTo.");
+                //System.out.println("\nWARNING: Make sure your keys implement Comparable and override compareTo.\n");
                 map = createMap (collectionType);
                 break;
         }
@@ -80,7 +80,7 @@ public final class StorageManager <ID, E extends Identifiable <ID>> implements I
                 .findFirst();
     }
 
-    public List<E> findAll () {
+    public List <E> findAll () {
         return new ArrayList<>(isUsingMap() ? map.values() : collection);
     }
 
@@ -92,7 +92,7 @@ public final class StorageManager <ID, E extends Identifiable <ID>> implements I
             ID key = element.getId();
             map.put(key, element);
         }
-        System.out.println("Element updated successfully!");
+        System.out.println("\nElement updated successfully!\n");
     }
 
     public void delete (ID id) {
@@ -105,7 +105,7 @@ public final class StorageManager <ID, E extends Identifiable <ID>> implements I
 
     public void delete (E element) {
         if (element == null) {
-            System.out.println("Cannot delete a null element.");
+            System.out.println("\nCannot delete a null element.\n");
             return;
         }
         ID id = element.getId();
@@ -123,18 +123,17 @@ public final class StorageManager <ID, E extends Identifiable <ID>> implements I
             throw new DuplicateElementException (false);
         }
         if (collection instanceof Set && exists) {
-            throw new DuplicateElementException ("Element will not be added because the collection is a Set and does not allow duplicates.");
+            throw new DuplicateElementException ("\nElement will not be added because the collection is a Set and does not allow duplicates.\n");
         }
 
         collection.add(element);
-        System.out.println("Element added successfully!");
     }
 
     private void addToMap (E element) {
         ID key = element.getId();
 
         if (map.containsKey(key)) {
-            boolean confirm = ConsoleUtil.confirm("Warning: the key already exists in the map. This will overwrite the existing value.");
+            boolean confirm = ConsoleUtil.confirm("\nWarning: the key already exists in the map. This will overwrite the existing value. Do you want to proceed?");
             if (!confirm) return;
         }
 
@@ -144,27 +143,27 @@ public final class StorageManager <ID, E extends Identifiable <ID>> implements I
     private void deleteFromMap (ID id) {
         E element = map.get(id);
         if (element == null) {
-            System.out.println("No element found with the given ID.");
+            System.out.println("\nNo element found with the given ID.\n");
             return;
         }
 
-        String warning = "This operation is irreversible. The following element will be deleted:\n" + element;
+        String warning = "\nThis operation is irreversible. The following element will be deleted:\n" + element + "\nDo you want to proceed?";
         if (ConsoleUtil.confirm(warning)) {
             map.remove(id);
-            System.out.println("Element successfully deleted.");
+            System.out.println("\nElement successfully deleted.\n");
         }
     }
 
     private void deleteFromCollection (ID id) {
         findById(id).ifPresentOrElse(
                 e -> {
-                    String warning = "This operation is irreversible. The following element will be deleted:\n" + e;
+                    String warning = "\nThis operation is irreversible. The following element will be deleted:\n" + e + "\nDo you want to proceed?";
                     if (ConsoleUtil.confirm(warning)) {
                         collection.remove(e);
-                        System.out.println("Element successfully deleted.");
+                        System.out.println("\nElement successfully deleted.\n");
                     }
                 },
-                () -> System.out.println("No element found with the given ID.")
+                () -> System.out.println("\nNo element found with the given ID.\n")
         );
     }
 
@@ -177,7 +176,7 @@ public final class StorageManager <ID, E extends Identifiable <ID>> implements I
             case HASH_SET -> new HashSet<>();
             case LINKED_HASH_SET -> new LinkedHashSet<>();
             case TREE_SET -> new TreeSet<>();
-            default -> throw new IllegalArgumentException ("Unsupported collection type: " + collectionType);
+            default -> throw new IllegalArgumentException ("\nUnsupported collection type: " + collectionType + ".\n");
         };
     }
 
@@ -186,7 +185,7 @@ public final class StorageManager <ID, E extends Identifiable <ID>> implements I
             case HASH_MAP -> new HashMap<>();
             case LINKED_HASH_MAP -> new LinkedHashMap<>();
             case TREE_MAP -> new TreeMap<>();
-            default -> throw new IllegalArgumentException ("Unsupported collection type: " + collectionType);
+            default -> throw new IllegalArgumentException ("\nUnsupported collection type: " + collectionType + ".\n");
         };
     }
 

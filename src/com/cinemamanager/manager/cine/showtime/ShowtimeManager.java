@@ -1,7 +1,7 @@
 package com.cinemamanager.manager.cine.showtime;
 import com.cinemamanager.enums.cine.movie.MovieStatus;
+import com.cinemamanager.enums.cine.showtime.ShowtimeStatus;
 import com.cinemamanager.exception.BusinessRuleException;
-import com.cinemamanager.exception.cine.showtime.ShowtimeNotFoundException;
 import com.cinemamanager.manager.cine.movie.MovieManager;
 import com.cinemamanager.manager.cine.room.RoomManager;
 import com.cinemamanager.manager.cine.seat.SeatManager;
@@ -42,66 +42,79 @@ public final class ShowtimeManager {
                 .mapToInt(Showtime::getId)
                 .max();
         this.nextId = maxId.isPresent() ? maxId.getAsInt() +1 : 1;
-    } // Si hago los metodos de seat static, ni le paso el manager al constructor
+    }
 
     public void addShowTime () {
         try {
             Showtime showtime = ShowtimeFactory.createShowtime(nextId++, this, movieManager, scheduleManager, roomManager);
+            showtimeStorageManager.add(showtime, false);
             saveToFile();
             System.out.println("\nShowtime registered successfully!\n");
-        } catch (BusinessRuleException e) {
-            System.err.println("\nError registering the showtime: " + e.getMessage());;
+        } catch (BusinessRuleException | DuplicateElementException e) {
+            System.err.println("\nError registering the showtime: " + e.getMessage() + ".\n");
         }
     }
 
-    public boolean deleteShowtimeById () {
-        int id = ConsoleUtil.readInt("Enter the ID of the showtime you want to delete: ");
-        try {
-            Showtime showtime = findShowtimeById(id);
-            if (showtime.hasAtLeastOneSale()) {
-                System.out.println("You cannot delete a showtime with sold tickets.");
-                return false;
-            }
-            if (!ConsoleUtil.confirm("This will permanently delete the showtime from the system.")) {
-                return false;
-            }
-            Movie movie = showtime.getMovie();
-            if (!isMovieShowing(movie)) movie.setStatus(MovieStatus.UNAVAILABLE);
-            showtimeStorageManager.delete(id);
-            saveToFile();
-            System.out.println("Showtime successfully deleted.");
-            return true;
-        } catch (ShowtimeNotFoundException e) {
-            System.err.println(e.getMessage());
-            return false;
+    public void deleteShowtimeById () {
+        Optional <Showtime> optionalShowtime = selectShowtimeByIdFromList(findAllShowtimes());
+
+        if (optionalShowtime.isEmpty()) return;
+
+        Showtime showtime = optionalShowtime.get();
+
+        if (showtime.hasAtLeastOneSale()) {
+            System.out.println("\nYou cannot delete a showtime with sold tickets.\n");
+            return;
         }
+        if (!showtime.getStatus().equals(ShowtimeStatus.CANCELLED)) {
+            System.out.println("\nOnly canceled showtimes can be deleted.\n");
+            return;
+        }
+        if (!ConsoleUtil.confirm("\nThis will permanently delete the showtime from the system.\nDo you want to proceed?")) {
+            return;
+        }
+        Movie movie = showtime.getMovie();
+        if (!isMovieShowing(movie)) movie.setStatus(MovieStatus.UNAVAILABLE);
+        showtimeStorageManager.delete(showtime);
+        saveToFile();
+        System.out.println("\nShowtime successfully deleted.\n");
     }
 
     public void cancelShowtime () {
-        int id = ConsoleUtil.readInt("Enter the ID of the showtime you want to cancel: ");
-        try {
-            Showtime showtime = findShowtimeById(id);
-            if (showtime.hasAtLeastOneSale()) {
-                System.out.println("You cannot delete a showtime with sold tickets.");
-            }
-            if (ConsoleUtil.confirm("This will cancel the current showtime.")) {
-                Movie movie = showtime.getMovie();
-                if (!isMovieShowing(movie)) movie.setStatus(MovieStatus.UNAVAILABLE);
-                showtime.cancel();
-                saveToFile();
-                System.out.println("Showtime canceled.");
-            }
-        } catch (ShowtimeNotFoundException e) {
-            System.err.println(e.getMessage());
+        Optional <Showtime> optionalShowtime = selectShowtimeByIdFromList(findAllShowtimes());
+
+        if (optionalShowtime.isEmpty()) return;
+
+        Showtime showtime = optionalShowtime.get();
+        if (showtime.getStatus().equals(ShowtimeStatus.CANCELLED)) {
+            System.out.println("This showtime has already been canceled.");
+            return;
+        }
+        if (showtime.hasAtLeastOneSale()) {
+            System.out.println("\nYou cannot delete a showtime with sold tickets.\n");
+            return;
+        }
+        if (ConsoleUtil.confirm("\nThis will cancel the current showtime.\nDo you want to proceed?")) {
+            Movie movie = showtime.getMovie();
+            if (!isMovieShowing(movie)) movie.setStatus(MovieStatus.UNAVAILABLE);
+            showtime.cancel();
+            saveToFile();
+            System.out.println("\nShowtime canceled.\n");
         }
     }
 
     public void updateShowtime () {
-        Showtime showtimeToUpdate = selectShowtimeByIdFromList(findAllShowtimes());
-        if (showtimeToUpdate == null) return;
+        Optional <Showtime> optionalShowtime = selectShowtimeByIdFromList(findAllShowtimes());
+
+        if (optionalShowtime.isEmpty()) {
+            System.out.println("Showtime not found.");
+            return;
+        }
+
+        Showtime showtimeToUpdate = optionalShowtime.get();
 
         if (showtimeToUpdate.hasAtLeastOneSale()) {
-            System.out.println("You cannot modify a showtime that already has sold tickets.");
+            System.out.println("\nYou cannot modify a showtime that already has sold tickets.\n");
             return;
         }
 
@@ -112,12 +125,12 @@ public final class ShowtimeManager {
             case "2" -> updateRoomOfShowtime(showtimeToUpdate);
             case "3" -> updateTimeSlotOfShowtime(showtimeToUpdate);
             case "4" -> updatePriceOfShowtime(showtimeToUpdate);
-            case "0" -> System.out.println("Returning to the previous menu...");
+            case "0" -> System.out.println("\nReturning to the previous menu...\n");
         }
     }
 
-    public Showtime findShowtimeById (int id) throws ShowtimeNotFoundException {
-        return showtimeStorageManager.findById(id).orElseThrow(() -> new ShowtimeNotFoundException("Showtime with ID: " + id + " not found."));
+    public Optional <Showtime> findShowtimeById (int id) {
+        return showtimeStorageManager.findById(id);
     }
 
     public List <Showtime> findAllShowtimes () {
@@ -128,9 +141,22 @@ public final class ShowtimeManager {
         return showtimeStorageManager.findBy(st -> st.isAvailable() && st.hasAvailableSeats());
     }
 
+    public void showAvailableShowtimes () {
+        List <Showtime> availableShowtimes = findAvailableShowtimes();
+        if (availableShowtimes.isEmpty()) {
+            System.out.println("No showtimes available.");
+            return;
+        }
+        for (Showtime showtime : availableShowtimes) {
+            System.out.println(showtime);
+            System.out.println("These are the seats available for this showtime:");
+            displaySeats(showtime);
+        }
+    }
+
     public boolean isMovieShowing(Movie movie) {
         return showtimeStorageManager
-                .findFirstBy(showtime -> showtime.getMovie().equals(movie))
+                .findFirstBy(showtime -> showtime.getMovie().equals(movie) && showtime.getStatus().equals(ShowtimeStatus.AVAILABLE))
                 .isPresent();
     }
 
@@ -140,42 +166,40 @@ public final class ShowtimeManager {
         }
     }
 
-    public void displayAvailableShowtimes () {
-        List <Showtime> availables = findAvailableShowtimes();
-        displayShowtimes(availables);
-    }
-
-    public Showtime selectShowtimeByIdFromList (List <Showtime> showtimeList) {
+    public Optional <Showtime> selectShowtimeByIdFromList (List <Showtime> showtimeList) {
         if (showtimeList.isEmpty()) {
-            System.out.println("No showtimes available to select.");
-            return null;
-        }
-
-        for (Showtime showtime : showtimeList) {
-            System.out.println("ID: " + showtime.getId());
-            System.out.println(showtime);
+            System.out.println("\nNo showtimes available to select.\n");
+            return Optional.empty();
         }
 
         while (true) {
-            int id = ConsoleUtil.readInt("Enter the ID of the showtime to select: ");
+            displayShowtimesWithId(showtimeList);
 
-            try {
-                Showtime selected = findShowtimeById(id);
+            int id = ConsoleUtil.readInt("\nEnter the ID of the showtime to select: ");
+
+            Optional <Showtime> optionalShowtime = findShowtimeById(id);
+
+            if (optionalShowtime.isEmpty()) {
+                System.out.println("Showtime with ID: " + id + " not found.");
+            }
+            else {
+                Showtime selected = optionalShowtime.get();
 
                 if (showtimeList.contains(selected)) {
-                    return selected;
+                    return Optional.of(selected);
                 } else {
-                    System.out.println("The selected showtime ID is not in the current list.");
+                    System.out.println("\nThe selected showtime ID is not in the current list.\n");
                 }
-            } catch (ShowtimeNotFoundException e) {
-                System.err.println(e.getMessage());
+            }
+            if (!ConsoleUtil.confirm("\nDo you want to try with another ID?")) {
+                return Optional.empty();
             }
         }
     }
 
     public Optional <Seat> reserveSeat (Showtime showtime) {
         if (!showtime.hasAvailableSeats()) {
-            System.out.println("No more seats available for this showtime.");
+            System.out.println("\nNo more seats available for this showtime.\n");
             return Optional.empty();
         }
         displaySeats(showtime);
@@ -191,25 +215,65 @@ public final class ShowtimeManager {
     }
 
     public void showSeatsForShowtimeById() {
-        int id = ConsoleUtil.readInt("Enter the ID of the showtime to display seats: ");
-        try {
-            Showtime showtime = findShowtimeById(id);
-            displaySeats(showtime);
-        } catch (ShowtimeNotFoundException e) {
-            System.err.println(e.getMessage());
+        int id = ConsoleUtil.readInt("\nEnter the ID of the showtime to display seats: ");
+
+        Optional <Showtime> optionalShowtime = findShowtimeById(id);
+
+        if (optionalShowtime.isEmpty()) {
+            System.out.println("Showtime with ID: " + id + " not found.");
+            return;
+        }
+
+        Showtime showtime = optionalShowtime.get();
+
+        displaySeats(showtime);
+
+    }
+
+    public boolean roomHasShowtimes (Room room) {
+        return showtimeStorageManager.findFirstBy(st -> st.getRoom().equals(room)).isPresent();
+    }
+
+    public TreeSet <Room> getRoomsWithActiveShows () {
+        List <Room> rooms = showtimeStorageManager.findAll()
+                .stream()
+                .map(Showtime::getRoom)
+                .distinct()
+                .toList();
+
+        return new TreeSet<>(rooms);
+    }
+
+    public TreeSet<Room> getRoomsWithoutActiveShows() {
+        TreeSet <Room> allRooms = roomManager.findAllRooms();
+        TreeSet <Room> roomsWithShows = getRoomsWithActiveShows();
+
+        List <Room> roomsWithoutShows = allRooms.stream()
+                                        .filter(room -> !roomsWithShows.contains(room))
+                                        .toList();
+
+        return new TreeSet<>(roomsWithoutShows);
+    }
+
+    private void displayShowtimesWithId (List <Showtime> showtimeList) {
+        for (Showtime showtime : showtimeList) {
+            System.out.println("ID: " + showtime.getId());
+            System.out.println(showtime);
         }
     }
 
     private String readUpdateOption () {
         String prompt = """
+            
             What do you want to update?
+            
             [1] Change movie
             [2] Change room
             [3] Change time slot
             [4] Change price
 
             [0] Back
-            """;
+            >""" + " ";
 
         Set <String> validOptions = Set.of("0", "1", "2", "3", "4");
         return ConsoleUtil.readOption(prompt, validOptions);
@@ -220,23 +284,23 @@ public final class ShowtimeManager {
         Optional<Movie> optionalNewMovie = movieManager.selectMovieByIdFromList(movies);
 
         if (optionalNewMovie.isEmpty()) {
-            System.out.println("No movie selected. Operation cancelled.");
+            System.out.println("\nNo movie selected. Operation cancelled.\n");
             return;
         }
 
         Movie newMovie = optionalNewMovie.get();
-        System.out.println("The movie duration has changed. You need to enter a new schedule:");
+        System.out.println("\nThe movie duration has changed. You need to enter a new schedule: ");
 
         Optional<TimeSlot> newTimeSlotOpt = scheduleManager.createTimeSlot(showtime.getShowDay(), newMovie.getDuration());
         if (newTimeSlotOpt.isEmpty()) {
-            System.out.println("No valid time slot selected. Operation cancelled.");
+            System.out.println("\nNo valid time slot selected. Operation cancelled.\n");
             return;
         }
 
         newTimeSlotOpt.ifPresent(timeSlot -> {
             showtime.setMovie(newMovie);
             showtime.setTimeSlot(timeSlot);
-            saveShowtimeAndNotify("Movie updated successfully!");
+            saveShowtimeAndNotify("\nMovie updated successfully!\n");
         });
     }
 
@@ -246,25 +310,25 @@ public final class ShowtimeManager {
             Room newRoom = roomReservationOptional.get().getRoom();
             showtime.setRoom(newRoom);
             showtime.loadSeats();
-            saveShowtimeAndNotify("Room updated successfully and seats reset!");
+            saveShowtimeAndNotify("\nRoom updated successfully and seats reset!\n");
         } else {
-            System.out.println("No rooms available.");
+            System.out.println("\nNo rooms available.\n");
         }
     }
 
     private void updateTimeSlotOfShowtime(Showtime showtime) {
-        DayOfWeek newDay = ConsoleUtil.readEnum(DayOfWeek.class, "Select a day for the show time");
+        DayOfWeek newDay = ConsoleUtil.readEnum(DayOfWeek.class, "\nSelect a day for the show time");
         Optional<TimeSlot> newTimeSlotOpt = scheduleManager.createTimeSlot(newDay, showtime.getMovie().getDuration());
         if (newTimeSlotOpt.isPresent()) {
             showtime.setTimeSlot(newTimeSlotOpt.get());
-            saveShowtimeAndNotify("Time slot updated successfully!");
+            saveShowtimeAndNotify("\nTime slot updated successfully!\n");
         }
     }
 
     private void updatePriceOfShowtime(Showtime showtime) {
-        double newPrice = ConsoleUtil.readValidPrice("Enter the new price: ");
+        double newPrice = ConsoleUtil.readValidPrice("\nEnter the new price: ");
         showtime.setPrice(newPrice);
-        saveShowtimeAndNotify("Price updated successfully!");
+        saveShowtimeAndNotify("\nPrice updated successfully!\n");
     }
 
     private void saveShowtimeAndNotify(String message) {
@@ -284,7 +348,6 @@ public final class ShowtimeManager {
         while (totalSeats % columns != 0) {
             columns--;
         }
-        int rows = totalSeats / columns;
 
         System.out.println("-----------------------------------------");
         System.out.println("           🎥 Screen 🎥\n");
@@ -319,7 +382,7 @@ public final class ShowtimeManager {
         }
     }
 
-    private void saveToFile () {
+    public void saveToFile () {
         List <Showtime> list = new ArrayList<>(showtimeStorageManager.findAll());
         JsonUtil.write(SHOWTIME_FILE_PATH, list);
     }
