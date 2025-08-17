@@ -31,8 +31,7 @@ public final class TimeSlot {
 
     @Override
     public String toString() {
-        return  "--------------------------\n" +
-                "Start time: " + ConsoleUtil.formatTime(startTime) + ".\n" +
+        return  "Start time: " + ConsoleUtil.formatTime(startTime) + ".\n" +
                 "End time: " + ConsoleUtil.formatTime(endTime) + ".\n";
     }
 

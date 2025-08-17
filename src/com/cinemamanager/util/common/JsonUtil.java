@@ -7,6 +7,7 @@ import com.google.gson.stream.JsonWriter;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.function.Supplier;
 
@@ -14,7 +15,8 @@ public final class JsonUtil {
 
     private static final Gson GSON = new GsonBuilder()
             .registerTypeAdapter(Duration.class, new DurationAdapter())
-            .registerTypeAdapter(LocalTime.class, new LocalTimeAdapter()) // <--- NUEVO
+            .registerTypeAdapter(LocalTime.class, new LocalTimeAdapter())
+            .registerTypeAdapter(LocalDate.class, new LocalDateAdapter())
             .create();
 
     public static <T> void write (String path, T data) {
@@ -59,6 +61,18 @@ public final class JsonUtil {
         @Override
         public LocalTime read(JsonReader in) throws IOException {
             return LocalTime.parse(in.nextString());
+        }
+    }
+
+    private static class LocalDateAdapter extends TypeAdapter<LocalDate> {
+        @Override
+        public void write(JsonWriter out, LocalDate value) throws IOException {
+            out.value(value.toString());  // Ej: "2025-08-17"
+        }
+
+        @Override
+        public LocalDate read(JsonReader in) throws IOException {
+            return LocalDate.parse(in.nextString());
         }
     }
 

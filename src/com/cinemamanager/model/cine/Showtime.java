@@ -176,7 +176,7 @@ public final class Showtime implements Identifiable <Integer> {
         return  "Movie: " + movie.getTitle() + ".\n" +
                 "Room type: " + ConsoleUtil.formatEnumName(room.getType().name()) + ".\n" +
                 "Room number: " + room.getId() + ".\n" +
-                "Schedule: " + timeSlot + ".\n" +
+                 timeSlot +
                 "Day: " + ConsoleUtil.formatEnumName(showDay.name()) + ".\n" +
                 "Price: " + price + ".\n" +
                 "Current status: " + ConsoleUtil.formatEnumName(status.name()) + ".\n" +

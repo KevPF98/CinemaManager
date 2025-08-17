@@ -257,7 +257,7 @@ public final class ShowtimeManager {
 
     private void displayShowtimesWithId (List <Showtime> showtimeList) {
         for (Showtime showtime : showtimeList) {
-            System.out.println("ID: " + showtime.getId());
+            System.out.println("\nShowtime ID: " + showtime.getId());
             System.out.println(showtime);
         }
     }
