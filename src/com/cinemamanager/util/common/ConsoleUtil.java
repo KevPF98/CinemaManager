@@ -1,6 +1,9 @@
 package com.cinemamanager.util.common;
+import com.cinemamanager.manager.user.PersonalDataManager;
 import com.cinemamanager.manager.user.UserManager;
-import com.cinemamanager.util.user.UserValidator;
+import com.cinemamanager.util.people.account.AccountValidator;
+import com.cinemamanager.util.people.personalData.PersonalDataValidator;
+
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -101,7 +104,7 @@ public final class ConsoleUtil {
     }
 
     public static <T extends Enum<T>> T readEnum (Class <T> enumClass, String prompt) {
-        List<String> options = Arrays.stream(enumClass.getEnumConstants())
+        List <String> options = Arrays.stream(enumClass.getEnumConstants())
                 .map(Enum::name)
                 .toList();
 
@@ -135,6 +138,10 @@ public final class ConsoleUtil {
         }
 
         return result.toString().trim();
+    }
+
+    public static void showAbortMessage () {
+        System.out.println("\nOperation aborted.\n");
     }
 
     // Date and time:
@@ -238,10 +245,10 @@ public final class ConsoleUtil {
         String nickname;
         do {
             nickname = ConsoleUtil.readString("\nEnter " + label + " (3-20 characters, letters, numbers, underscores): ");
-            if (!UserValidator.isValidNickname(nickname)) {
+            if (!AccountValidator.isValidNickname(nickname)) {
                 System.out.println("\nInvalid nickname. Only letters, numbers and underscores allowed (3-20 characters).\n");
             }
-        } while (!UserValidator.isValidNickname(nickname));
+        } while (!AccountValidator.isValidNickname(nickname));
         return nickname;
     }
 
@@ -249,10 +256,10 @@ public final class ConsoleUtil {
         String password;
         do {
             password = ConsoleUtil.readString ("\nEnter " + label + " (at least 6 characters): ");
-            if (!UserValidator.isValidPassword(password)) {
+            if (!AccountValidator.isValidPassword(password)) {
                 System.out.println ("\nPassword too weak. Must be at least 6 characters, include uppercase, lowercase and a number.\n");
             }
-        } while (!UserValidator.isValidPassword(password));
+        } while (!AccountValidator.isValidPassword(password));
         return password;
     }
 
@@ -260,10 +267,10 @@ public final class ConsoleUtil {
         String name;
         do {
             name = ConsoleUtil.readCapitalizedString("\nEnter " + label + ": ");
-            if (!UserValidator.isValidName(name)) {
+            if (!PersonalDataValidator.isValidName(name)) {
                 System.out.println("\nInvalid " + label + ". Only letters, spaces and hyphens allowed.\n");
             }
-        } while (!UserValidator.isValidName(name));
+        } while (!PersonalDataValidator.isValidName(name));
         return name;
     }
 
@@ -271,10 +278,10 @@ public final class ConsoleUtil {
         String nationalId;
         do {
             nationalId = ConsoleUtil.readString ("\nEnter " + label + " (7-10 digits): ");
-            if (!UserValidator.isValidNationalId(nationalId)) {
+            if (!PersonalDataValidator.isValidNationalId(nationalId)) {
                 System.out.println ("\nInvalid National Identification format. Please enter only digits, length 7 to 10.\n");
             }
-        } while (!UserValidator.isValidNationalId(nationalId));
+        } while (!PersonalDataValidator.isValidNationalId(nationalId));
         return nationalId;
     }
 
@@ -282,10 +289,10 @@ public final class ConsoleUtil {
         String email;
         do {
             email = ConsoleUtil.readString ("\nEnter " + label + ": ");
-            if (!UserValidator.isValidEmail(email)) {
+            if (!PersonalDataValidator.isValidEmail(email)) {
                 System.out.println ("\nInvalid email format. Please try again.\n");
             }
-        } while (!UserValidator.isValidEmail(email));
+        } while (!PersonalDataValidator.isValidEmail(email));
         return email;
     }
 
@@ -293,10 +300,10 @@ public final class ConsoleUtil {
         String phone;
         do {
             phone = ConsoleUtil.readString("\nEnter " + label + " (digits, spaces, dashes, optional '+'): ");
-            if (!UserValidator.isValidPhone(phone)) {
+            if (!PersonalDataValidator.isValidPhone(phone)) {
                 System.out.println("\nInvalid phone number format. Please try again.\n");
             }
-        } while (!UserValidator.isValidPhone(phone));
+        } while (!PersonalDataValidator.isValidPhone(phone));
         return phone;
     }
 
@@ -312,23 +319,23 @@ public final class ConsoleUtil {
         }
     }
 
-    public static String readUniqueNationalId(UserManager userManager) {
+    public static String readUniqueNationalId (PersonalDataManager personalDataManager) {
         while (true) {
             String nationalId = ConsoleUtil.readValidNationalId("National ID");
 
-            if (userManager.nationalIdAlreadyExists(nationalId)) {
-                System.out.println("\nThere is already a user associated with this National ID.\n");
+            if (personalDataManager.nationalIdAlreadyExists(nationalId)) {
+                System.out.println("\nNational ID already exists. Enter a different one.\n");
             } else {
                 return nationalId;
             }
         }
     }
 
-    public static String readUniqueEmail(UserManager userManager) {
+    public static String readUniqueEmail (PersonalDataManager personalDataManager) {
         while (true) {
             String email = ConsoleUtil.readValidEmail("email");
 
-            if (userManager.emailAlreadyExists(email)) {
+            if (personalDataManager.emailAlreadyExists(email)) {
                 System.out.println("\nThis email is already in use. Please enter another one.\n");
             } else {
                 return email;
@@ -336,17 +343,73 @@ public final class ConsoleUtil {
         }
     }
 
-    public static String readUniquePhoneNumber(UserManager userManager) {
+    public static String readUniquePhoneNumber (PersonalDataManager personalDataManager) {
         while (true) {
             String phoneNumber = ConsoleUtil.readValidPhone("phone number");
 
-            if (userManager.phoneNumberAlreadyExists(phoneNumber)) {
+            if (personalDataManager.phoneNumberAlreadyExists(phoneNumber)) {
                 System.out.println("\nThis phone number is already in use. Please enter another one.\n");
             } else {
                 return phoneNumber;
             }
         }
     }
+
+//    public static String readUniqueNationalId(UserManager userManager, PersonalDataManager clientManager) {
+//        String nationalId;
+//        do {
+//            nationalId = readString("National ID: ");
+//            if (!AccountValidator.isValidNationalId(nationalId)) {
+//                System.out.println("Invalid National ID format.");
+//                continue;
+//            }
+//            boolean existsInUsers = userManager.findUserByNationalId(nationalId).isPresent();
+//            boolean existsInClients = clientManager.findClientById(nationalId).isPresent();
+//            if (existsInUsers || existsInClients) {
+//                System.out.println("National ID already exists. Enter a different one.");
+//                nationalId = null;
+//            }
+//        } while (nationalId == null);
+//        return nationalId;
+//    }
+
+//    public static String readUniqueEmail(UserManager userManager, PersonalDataManager clientManager) {
+//        String email;
+//        do {
+//            email = readString("Email: ");
+//            if (!AccountValidator.isValidEmail(email)) {
+//                System.out.println("Invalid email format.");
+//                continue;
+//            }
+//            boolean existsInUsers = userManager.emailAlreadyExists(email);
+//            boolean existsInClients = clientManager.listAllClients().stream()
+//                    .anyMatch(c -> c.getEmail().equals(email));
+//            if (existsInUsers || existsInClients) {
+//                System.out.println("Email already exists. Enter a different one.");
+//                email = null;
+//            }
+//        } while (email == null);
+//        return email;
+//    }
+//
+//    public static String readUniquePhoneNumber(UserManager userManager, PersonalDataManager clientManager) {
+//        String phone;
+//        do {
+//            phone = readString("Phone number: ");
+//            if (!AccountValidator.isValidPhone(phone)) {
+//                System.out.println("Invalid phone number format.");
+//                continue;
+//            }
+//            boolean existsInUsers = userManager.phoneNumberAlreadyExists(phone);
+//            boolean existsInClients = clientManager.listAllClients().stream()
+//                    .anyMatch(c -> c.getPhoneNumber().equals(phone));
+//            if (existsInUsers || existsInClients) {
+//                System.out.println("Phone number already exists. Enter a different one.");
+//                phone = null;
+//            }
+//        } while (phone == null);
+//        return phone;
+//    }
 
     // Movie:
 

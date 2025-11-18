@@ -1,5 +1,7 @@
 package com.cinemamanager.manager.sale;
+import com.cinemamanager.manager.user.PersonalDataManager;
 import com.cinemamanager.manager.user.UserManager;
+import com.cinemamanager.model.people.PersonalData;
 import com.cinemamanager.model.people.User;
 import com.cinemamanager.model.sale.Invoice;
 import com.cinemamanager.model.sale.Ticket;
@@ -21,12 +23,14 @@ public final class InvoiceManager {
     private int nextId;
 
     private final TicketManager ticketManager;
-    private final UserManager userManager;
+//    private final UserManager userManager;
+    private final PersonalDataManager personalDataManager;
 
-    public InvoiceManager (TicketManager ticketManager, UserManager userManager) {
+    public InvoiceManager (TicketManager ticketManager, /*UserManager userManager*/ PersonalDataManager personalDataManager) {
         this.invoiceStorageManager = new StorageManager<> (CollectionType.ARRAY_LIST);
         this.ticketManager = ticketManager;
-        this.userManager = userManager;
+        //this.userManager = userManager;
+        this.personalDataManager = personalDataManager;
 
         loadFromFile();
 
@@ -36,33 +40,86 @@ public final class InvoiceManager {
         this.nextId = maxId.isPresent() ? maxId.getAsInt() +1 : 1;
     }
 
-    public Optional <Invoice> addInvoice () { // Llamar al showtime.saveToFile despues de este metodo
-        User user;
+//    public Optional <Invoice> addInvoice () {
+//        User user;
+//        while (true) {
+//            Optional <User> optionalUser = userManager.getOrCreateUser();
+//            if (optionalUser.isPresent()) {
+//                user = optionalUser.get();
+//                break;
+//            }
+//            if (!ConsoleUtil.confirm("\nDo you want to try with another National ID?")) return Optional.empty();
+//        }
+//        List <Ticket> tickets = ticketManager.createTickets();
+//        if (tickets.isEmpty()) return Optional.empty();
+//        Invoice invoice = new Invoice (nextId++, tickets, user.getPersonalData().getId());
+//        if (ConsoleUtil.confirm("\nAmount to pay: $" + invoice.getTotal() + ".\nDo you want to proceed?")) {
+//            try {
+//                invoiceStorageManager.add(invoice, false);
+//                ticketManager.saveToFile();
+//                saveToFile();
+//                System.out.println("\nInvoice generated successfully!\n");
+//                return Optional.of(invoice);
+//            } catch (DuplicateElementException e) {
+//                System.out.println("\nError adding the invoice: " + e.getMessage());
+//            }
+//        }
+//        ticketManager.getAllTickets().removeAll(tickets);
+//        return Optional.empty();
+//    }
+
+    public Optional<Invoice> addInvoice() {
+        PersonalData customerData;
+
+        // Paso 1: Obtener o registrar personal data del cliente
         while (true) {
-            Optional <User> optionalUser = userManager.getOrCreateUser();
-            if (optionalUser.isPresent()) {
-                user = optionalUser.get();
+            String nationalId = ConsoleUtil.readValidNationalId("customer's National ID");
+            Optional <PersonalData> optionalData = personalDataManager.findPersonalDataByNationalId(nationalId);
+
+            if (optionalData.isEmpty()) {
+                System.out.println("\nNo personal data found for this National ID.");
+                if (ConsoleUtil.confirm("Do you want to register personal data for this customer?")) {
+                    Optional<PersonalData> registered = personalDataManager.registerPersonalData(nationalId);
+                    if (registered.isPresent()) {
+                        customerData = registered.get();
+                        break;
+                    } else {
+                        System.out.println("\nRegistration canceled.");
+                        if (!ConsoleUtil.confirm("Try again with another National ID?")) return Optional.empty();
+                    }
+                } else if (!ConsoleUtil.confirm("Try again with another National ID?")) return Optional.empty();
+            } else {
+                customerData = optionalData.get();
                 break;
             }
-            if (!ConsoleUtil.confirm("\nDo you want to try with another National ID?")) return Optional.empty();
         }
-        List <Ticket> tickets = ticketManager.createTickets();
+
+        // Paso 2: Crear tickets
+        List<Ticket> tickets = ticketManager.createTickets();
         if (tickets.isEmpty()) return Optional.empty();
-        Invoice invoice = new Invoice (nextId++, tickets, user.getPersonalData().getId());
+
+        // Paso 3: Crear factura
+        Invoice invoice = new Invoice(nextId++, tickets, customerData.getId());
+
+        // Paso 4: Confirmar y guardar
         if (ConsoleUtil.confirm("\nAmount to pay: $" + invoice.getTotal() + ".\nDo you want to proceed?")) {
             try {
                 invoiceStorageManager.add(invoice, false);
-                ticketManager.saveToFile();
-                saveToFile();
+                ticketManager.saveToFile(); // Actualiza los asientos reservados
+                saveToFile(); // Guarda facturas
                 System.out.println("\nInvoice generated successfully!\n");
                 return Optional.of(invoice);
             } catch (DuplicateElementException e) {
                 System.out.println("\nError adding the invoice: " + e.getMessage());
             }
         }
+
+        // Paso 5: Si no se confirma la compra, liberar tickets
         ticketManager.getAllTickets().removeAll(tickets);
+        System.out.println("\nInvoice generation canceled.\n");
         return Optional.empty();
     }
+
 
     private void loadFromFile () {
         Type type = new TypeToken <List <Invoice>>() {}.getType();

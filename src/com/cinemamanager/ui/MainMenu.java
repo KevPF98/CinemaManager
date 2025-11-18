@@ -3,15 +3,16 @@ import com.cinemamanager.auth.LoginService;
 import com.cinemamanager.enums.user.Role;
 import com.cinemamanager.manager.cine.movie.MovieManager;
 import com.cinemamanager.manager.cine.room.RoomManager;
-import com.cinemamanager.manager.cine.seat.SeatManager;
 import com.cinemamanager.manager.cine.showtime.ShowtimeManager;
 import com.cinemamanager.manager.cine.timeslot.ScheduleManager;
 import com.cinemamanager.manager.sale.InvoiceManager;
 import com.cinemamanager.manager.sale.TicketManager;
+import com.cinemamanager.manager.user.PersonalDataManager;
 import com.cinemamanager.manager.user.UserManager;
 import com.cinemamanager.model.cine.Movie;
 import com.cinemamanager.model.cine.Room;
 import com.cinemamanager.model.cine.Showtime;
+import com.cinemamanager.model.people.PersonalData;
 import com.cinemamanager.model.people.User;
 import com.cinemamanager.model.sale.Invoice;
 import com.cinemamanager.util.common.ConsoleUtil;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public final class MainMenu {
+    private final PersonalDataManager personalDataManager;
     private final UserManager userManager;
     private final LoginService loginService;
     private final MovieManager movieManager;
@@ -33,14 +35,15 @@ public final class MainMenu {
 
     /// Main:
     public MainMenu() {
-        this.userManager = new UserManager();
+        this.personalDataManager = new PersonalDataManager();
+        this.userManager = new UserManager(personalDataManager);
         this.loginService = new LoginService(userManager);
         this.movieManager = new MovieManager();
         this.roomManager = new RoomManager();
         this.scheduleManager = new ScheduleManager(LocalTime.of(8, 0), LocalTime.of(23, 30));
         this.showtimeManager = new ShowtimeManager(roomManager, scheduleManager, movieManager);
         this.ticketManager = new TicketManager(movieManager, showtimeManager);
-        this.invoiceManager = new InvoiceManager(ticketManager, userManager);
+        this.invoiceManager = new InvoiceManager(ticketManager, /*userManager*/ personalDataManager);
     }
 
     public void displayMainMenu(){
@@ -95,7 +98,7 @@ public final class MainMenu {
 
         if (activeUser.getPersonalData().isMustCompleteProfile()) {
             System.out.println("\nYou must change your personal data before continuing.\n");
-            userManager.forcePersonalDataChange(activeUser);
+            personalDataManager.forceProfileUpdate(activeUser.getPersonalData());
         }
 
         if (activeUser.getAccount().isMustChangePassword()) {
@@ -118,7 +121,7 @@ public final class MainMenu {
                             [0] Log-out.
                             >""" + " ";
 
-            Set<String> validOptions = Set.of("0", "1", "2", "3");
+            Set <String> validOptions = Set.of("0", "1", "2", "3");
             chosenOption = ConsoleUtil.readOption(prompt, validOptions);
 
             switch (chosenOption) {
@@ -146,19 +149,20 @@ public final class MainMenu {
                     
                     What do you want to do?
                     
-                    [1] Add a new user.
-                    [2] Modify user by ID.
-                    [3] Delete user by ID.
-                    [4] Reactivate account by ID.
-                    [5] Find user by ID and show data.
-                    [6] List all users.
-                    [7] Grant admin privileges by ID.
-                    [8] Revoke admin permissions by ID.
+                    [1] Add a new client.
+                    [2] Add a new employee.
+                    [3] Modify user by ID.
+                    [4] Delete user by ID.
+                    [5] Reactivate account by ID.
+                    [6] Find user by ID and show data.
+                    [7] List all users.
+                    [8] Grant admin privileges by ID.
+                    [9] Revoke admin permissions by ID.
                     
                     [0] Return to the previous menu.
                     >""" + " ";
 
-            Set <String> validOptions = Set.of("0", "1", "2", "3", "4", "5", "6", "7", "8");
+            Set <String> validOptions = Set.of("0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
             chosenOption = ConsoleUtil.readOption(prompt, validOptions);
 
             boolean isNotFounder = !roleActiveSession.equals(Role.FOUNDER);
@@ -169,8 +173,25 @@ public final class MainMenu {
 
             switch (chosenOption) {
                 case "0" -> System.out.println("\nReturning to the previous menu...\n");
-                case "1" -> userManager.addUser();
+                case "1" -> {
+                    String nationalId = ConsoleUtil.readValidNationalId("the National ID");
+                    Optional <PersonalData> data = Optional.empty();
+                    if (personalDataManager.isPersonalDataUnique(nationalId, userManager)) {
+                        data = personalDataManager.registerPersonalData(nationalId);
+                    }
+                    if (data.isPresent()) {
+                        break;
+                    }
+                    System.out.println("Operation canceled.");
+                }
                 case "2" -> {
+                    String nationalId = ConsoleUtil.readValidNationalId("the National ID");
+                    Optional<User> created = userManager.addUser(nationalId);
+                    if (created.isEmpty()) {
+                        System.out.println("Operation canceled.");
+                    }
+                }
+                case "3" -> {
                     userManager.showAllUsers();
                     int idToModify = ConsoleUtil.readInt("\nEnter the ID of the user you want to edit.\n");
                     Optional <User> optionalUserToModify = userManager.findUserById(idToModify);
@@ -196,8 +217,8 @@ public final class MainMenu {
 
                     userManager.updateUser(userToModify.getId());
                 }
-                case "3" -> showUserDeletionMenu (isNotFounder, isNotAdmin, activeUser);
-                case "4" -> {
+                case "4" -> showUserDeletionMenu (isNotFounder, isNotAdmin, activeUser);
+                case "5" -> {
                     if (isNotFounder && isNotAdmin) {
                         System.out.println("\nOnly an admin can reactivate an account.\n");
                         break;
@@ -224,15 +245,15 @@ public final class MainMenu {
                     userManager.reactivateUser (userToReactivate);
 
                 }
-                case "5" -> {
+                case "6" -> {
                     int idToSearch = ConsoleUtil.readInt("\nEnter the user ID to search.\n");
                     Optional <User> optionalUserFound = userManager.findUserById (idToSearch);
                     if (optionalUserFound.isEmpty()) break;
                     User userFound = optionalUserFound.get();
                     System.out.println(userFound);
                 }
-                case "6" -> userManager.showAllUsers();
-                case "7" -> {
+                case "7" -> userManager.showAllUsers();
+                case "8" -> {
                     if (isNotFounder) {
                         System.out.println("\nOnly the Founder can grant admin privileges.\n");
                         break;
@@ -244,7 +265,7 @@ public final class MainMenu {
                     User userToGrantPrivileges = optionalUserToGrantPrivileges.get();
                     userManager.grantPrivileges (userToGrantPrivileges);
                 }
-                case "8" -> {
+                case "9" -> {
                     if (isNotFounder) {
                         System.out.println("\nOnly the Founder can revoke admin privileges.\n");
                         break;
@@ -253,7 +274,15 @@ public final class MainMenu {
                     int idToRevokePrivileges = ConsoleUtil.readInt("\nEnter the user ID to revoke privileges.\n");
                     Optional <User> optionalUserToRevokePrivileges = userManager.findUserById (idToRevokePrivileges);
                     if (optionalUserToRevokePrivileges.isEmpty()) break;
+
                     User userToRevokePrivileges = optionalUserToRevokePrivileges.get();
+                    targetRole = userToRevokePrivileges.getAccount().getRole();
+                    targetIsFounder = targetRole.equals(Role.FOUNDER);
+
+                    if (targetIsFounder) {
+                        System.out.println("\nFounder privileges cannot be revoked.\n");
+                        break;
+                    }
                     userManager.revokePrivileges(userToRevokePrivileges);
                 }
             }
@@ -692,7 +721,7 @@ public final class MainMenu {
                 case "3" -> showtimeManager.showSeatsForShowtimeById();
                 case "4" -> showtimeManager.showAvailableShowtimes();
                 case "5" -> {
-                    Optional <Movie> optionalMovie = movieManager.selectMovieByIdFromList(movieManager.findAllMovies());
+                    Optional <Movie> optionalMovie = movieManager.selectMovieByIdFromList(movieManager.getMovieListings());
                     if (optionalMovie.isEmpty()) break;
                     List <Showtime> showtimeList = showtimeManager.getAvailableShowtimesByMovie(optionalMovie.get());
                     if (showtimeList.isEmpty()) {

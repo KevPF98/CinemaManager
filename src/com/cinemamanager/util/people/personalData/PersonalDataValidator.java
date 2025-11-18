@@ -1,17 +1,6 @@
-package com.cinemamanager.util.user;
+package com.cinemamanager.util.people.personalData;
 
-public final class UserValidator {
-
-    public static boolean isValidNickname(String nickname) {
-        return nickname != null && !nickname.trim().isEmpty();
-    }
-
-    public static boolean isValidPassword(String password) {
-        return password.length() >= 6
-                && password.matches(".*[A-Z].*")
-                && password.matches(".*[a-z].*")
-                && password.matches(".*\\d.*");
-    }
+public final class PersonalDataValidator {
 
     public static boolean isValidName(String name) {
         return name != null && name.matches("^[A-Za-zÁÉÍÓÚáéíóúÑñ ]{1,50}$");

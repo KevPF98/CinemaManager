@@ -64,7 +64,7 @@ public final class JsonUtil {
         }
     }
 
-    private static class LocalDateAdapter extends TypeAdapter<LocalDate> {
+    private static class LocalDateAdapter extends TypeAdapter <LocalDate> {
         @Override
         public void write(JsonWriter out, LocalDate value) throws IOException {
             out.value(value.toString());  // Ej: "2025-08-17"

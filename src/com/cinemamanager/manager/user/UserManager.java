@@ -3,14 +3,13 @@ import com.cinemamanager.auth.Session;
 import com.cinemamanager.util.common.enums.CollectionType;
 import com.cinemamanager.enums.user.Role;
 import com.cinemamanager.util.common.exception.DuplicateElementException;
-import com.cinemamanager.exception.user.UserNotFoundException;
 import com.cinemamanager.model.people.Account;
 import com.cinemamanager.model.people.PersonalData;
 import com.cinemamanager.model.people.User;
 import com.cinemamanager.util.common.ConsoleUtil;
 import com.cinemamanager.util.common.JsonUtil;
 import com.cinemamanager.util.common.StorageManager;
-import com.cinemamanager.util.user.UserFactory;
+import com.cinemamanager.util.people.user.UserFactory;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.*;
@@ -21,37 +20,54 @@ public final class UserManager {
     private static final String USER_FILE_PATH = "users.json";
     private int nextId;
 
-    public UserManager () {
+    private final PersonalDataManager personalDataManager;
+
+    public UserManager (PersonalDataManager personalDataManager) {
         this.userStorageManager = new StorageManager<>(CollectionType.HASH_MAP);
+        this.personalDataManager = personalDataManager;
         loadFromFile();
 
-        OptionalInt maxId = userStorageManager.findAll().stream()
-                .mapToInt(User :: getId)
-                .max();
-        this.nextId = maxId.isPresent() ? maxId.getAsInt() +1 : 1;
+        nextId = userStorageManager.findAll().stream()
+                .mapToInt(User::getId)
+                .max()
+                .orElse(0) + 1;
     }
 
-    public void addUser () {
-        User newUser = UserFactory.createUser(nextId, this);
-        addUserInternal(newUser);
-    }
+    public Optional<User> addUser(String nationalId) {
 
-    public Optional <User> addUser (String nationalId) {
-        User newUser = UserFactory.createUser(nextId, this, nationalId);
-        addUserInternal(newUser);
-        return Optional.of(newUser);
-    }
+        Optional<PersonalData> personalData = personalDataManager.findPersonalDataByNationalId(nationalId);
 
-    private void addUserInternal(User user) {
-        try {
-            userStorageManager.add(user, false);
-            nextId++;
-            saveToFile();
-            System.out.println("\nUser created successfully!\n");
-        } catch (DuplicateElementException e) {
-            System.out.println("\nError adding the user: " + e.getMessage());
+        // Caso: no existe → se crea personalData + usuario
+        if (personalData.isEmpty()) {
+            User newUser = UserFactory.createUserWithNationalId(nextId, this, personalDataManager, nationalId);
+            return persistNewUser(newUser, "\nUser created successfully!\n");
         }
+
+        // Caso: existe y ya es empleado → se cancela
+        if (personalDataAlreadyAssociatedWithEmployee(nationalId)) {
+            return Optional.empty();
+        }
+
+        // Caso: existe pero es cliente → preguntar si quiere convertir
+        if (!ConsoleUtil.confirm("\nPersonal data already exists.\nConvert this client into an employee?")) {
+            return Optional.empty();
+        }
+
+        return convertClientToEmployee(personalData.get());
     }
+
+
+    public Optional<User> convertClientToEmployee(PersonalData data) {
+
+        User newUser = new User(
+                this.getNextId(),
+                new Account("newUser", "password123", Role.EMPLOYEE),
+                data
+        );
+
+        return persistNewUser(newUser, "\nClient converted to employee successfully!\n");
+    }
+
 
     public void deleteUserById (int id) {
         userStorageManager.delete(id);
@@ -106,7 +122,7 @@ public final class UserManager {
         return userStorageManager.findById(id);
     }
 
-    public Optional <User> findUserByNationalId(String nationalId) {
+    public Optional <User> findUserByNationalId (String nationalId) {
         return userStorageManager.findFirstBy(u -> u.getPersonalData().getId().equals(nationalId));
     }
 
@@ -152,15 +168,6 @@ public final class UserManager {
         System.out.println("\nPassword updated successfully.\n");
     }
 
-    public void forcePersonalDataChange (User user) {
-        String nationalId = ConsoleUtil.readValidNationalId ("new national ID");
-        user.getPersonalData().setId(nationalId);
-        changeAll (user);
-        user.getPersonalData().setMustCompleteProfile(false);
-        saveToFile();
-        System.out.println("\nPersonal data updated successfully.\n");
-    }
-
     public void updateUser (int id) {
         Optional <User> optionalUserToUpdate = findUserById(id);
         if (optionalUserToUpdate.isEmpty()) {
@@ -194,7 +201,7 @@ public final class UserManager {
             updateAccountData(userToUpdate);
         }
         else if (chosenOption.equals("2")) {
-            updatePersonalData(userToUpdate);
+            personalDataManager.updatePersonalData(userToUpdate.getPersonalData());
         }
     }
 
@@ -203,20 +210,33 @@ public final class UserManager {
         return userWithNickName.isPresent();
     }
 
-    public boolean nationalIdAlreadyExists(String newNationalId) {
-        Optional<User> userWithNationalId = userStorageManager.findFirstBy(u -> u.getPersonalData().getId().equals(newNationalId));
-        return userWithNationalId.isPresent();
+    public Integer getNextId () {
+        return nextId;
     }
 
-    public boolean emailAlreadyExists(String newEmail) {
-        Optional<User> userWithEmail = userStorageManager.findFirstBy(u -> u.getPersonalData().getEmail().equals(newEmail));
-        return userWithEmail.isPresent();
+    private boolean personalDataAlreadyAssociatedWithEmployee(String nationalId) {
+        boolean employeeExists = userStorageManager.findFirstBy(
+                                    u -> u.getPersonalData().getId().equals(nationalId)
+                                ).isPresent();
+        if (employeeExists) {
+            System.out.println("An employee is already associated with this National ID.");
+        }
+        return employeeExists;
     }
 
-    public boolean phoneNumberAlreadyExists(String newPhoneNumber) {
-        Optional<User> userWithPhoneNumber = userStorageManager.findFirstBy(u -> u.getPersonalData().getPhoneNumber().equals(newPhoneNumber));
-        return userWithPhoneNumber.isPresent();
+    private Optional<User> persistNewUser(User newUser, String successMessage) {
+        try {
+            userStorageManager.add(newUser, false);
+            nextId++;
+            saveToFile();
+            System.out.println(successMessage);
+            return Optional.of(newUser);
+        } catch (DuplicateElementException e) {
+            System.out.println("\nError: " + e.getMessage());
+            return Optional.empty();
+        }
     }
+
 
     private void updateAccountData(User userToUpdate) {
         String prompt = """
@@ -271,72 +291,21 @@ public final class UserManager {
         saveToFile();
     }
 
-    private void updatePersonalData (User userToUpdate) {
-        String prompt = """
-                        
-                        What do you want to do?
-                        [1] Change full name.
-                        [2] Change email.
-                        [3] Change phone seatNumber.
-                        [4] Change all.
-                        
-                        [0] Back.
-                        >""" + " ";
-        Set<String> validOptions = Set.of("0", "1", "2", "3", "4");
-        String chosenOption = ConsoleUtil.readOption(prompt, validOptions);
+    private void createDefaultFounderUser() {
+        Account founderAccount = new Account("founder", "founder123", Role.FOUNDER);
 
-        switch (chosenOption) {
-            case "1" -> changeFullName (userToUpdate);
-            case "2" -> changeEmail (userToUpdate);
-            case "3" -> changePhoneNumber (userToUpdate);
-            case "4" -> changeAll (userToUpdate);
-            case "0" -> {}
+        PersonalData data = new PersonalData(" ", " ", " ", " ", " ", true);
+
+        User founder = new User(1, founderAccount, data);
+
+        try {
+            userStorageManager.add(founder, true);
+            System.out.println("\nDefault founder account created. Please log in with:");
+            System.out.println("\nNickname: founder\n");
+            System.out.println("\nPassword: founder123\n");
+        } catch (DuplicateElementException e) {
+            System.err.println("\nUnexpected duplicate while creating founder: " + e.getMessage() + ".\n");
         }
-    }
-
-    private void changeFullName (User userToUpdate) {
-        String newFirstName = ConsoleUtil.readValidName("the new first name");
-        String newLastName = ConsoleUtil.readValidName("the new last name");
-        userToUpdate.getPersonalData().setName(newFirstName);
-        userToUpdate.getPersonalData().setLastName(newLastName);
-        System.out.println("\nFull name successfully changed.\n");
-        saveToFile();
-    }
-
-    private void changeEmail (User userToUpdate) {
-        String newEmail = ConsoleUtil.readValidEmail("new email");
-        if (emailAlreadyExists(newEmail)) {
-            System.out.println("\nThe email is already in use.\n");
-            showAbortMessage();
-        }
-        else {
-            userToUpdate.getPersonalData().setEmail(newEmail);
-            System.out.println("\nEmail successfully changed.\n");
-            saveToFile();
-        }
-    }
-
-    private void changePhoneNumber (User userToUpdate) {
-        String newPhoneNumber = ConsoleUtil.readValidPhone("new phone numer");
-        if (phoneNumberAlreadyExists(newPhoneNumber)) {
-            System.out.println("\nThere is already a user associated with this phone seatNumber.");
-            showAbortMessage();
-        }
-        else {
-            userToUpdate.getPersonalData().setPhoneNumber(newPhoneNumber);
-            System.out.println("\nPhone seatNumber successfully changed.\n");
-            saveToFile();
-        }
-    }
-
-    private void changeAll (User userToUpdate) {
-        changeFullName(userToUpdate);
-        changeEmail(userToUpdate);
-        changePhoneNumber(userToUpdate);
-    }
-
-    private void showAbortMessage () {
-        System.out.println("\nOperation aborted.\n");
     }
 
     private void loadFromFile () {
@@ -360,23 +329,6 @@ public final class UserManager {
         Map <Integer, User> map = userStorageManager.findAll().stream()
                 .collect(Collectors.toMap(User::getId, u -> u));
         JsonUtil.write(USER_FILE_PATH, map);
-    }
-
-    private void createDefaultFounderUser() {
-        Account founderAccount = new Account("founder", "founder123", Role.FOUNDER);
-
-        PersonalData data = new PersonalData(" ", " ", " ", " ", " ", true);
-
-        User founder = new User(1, founderAccount, data);
-
-        try {
-            userStorageManager.add(founder, true);
-            System.out.println("\nDefault founder account created. Please log in with:");
-            System.out.println("\nNickname: founder\n");
-            System.out.println("\nPassword: founder123\n");
-        } catch (DuplicateElementException e) {
-            System.err.println("\nUnexpected duplicate while creating founder: " + e.getMessage() + ".\n");
-        }
     }
 
 }

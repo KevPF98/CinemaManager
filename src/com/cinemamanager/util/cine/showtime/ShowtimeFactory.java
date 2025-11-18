@@ -25,8 +25,8 @@ public final class ShowtimeFactory {
                                            RoomManager roomManager)
                                            throws BusinessRuleException
     {
-        List<Movie> moviesNowShowing = movieManager.getMovieListings();
-        Optional <Movie> optionalSelectedMovie = movieManager.selectMovieByIdFromList(moviesNowShowing);
+        List <Movie> movies = movieManager.findAllMovies();
+        Optional <Movie> optionalSelectedMovie = movieManager.selectMovieByIdFromList(movies);
 
         if (optionalSelectedMovie.isEmpty()) {
             throw new BusinessRuleException(
@@ -45,7 +45,10 @@ public final class ShowtimeFactory {
 
         double price = ConsoleUtil.readValidPrice("Enter the ticket price: ");
 
-        if (!selectedMovie.getStatus().equals(MovieStatus.NOW_SHOWING)) selectedMovie.setStatus (MovieStatus.NOW_SHOWING);
+        if (!selectedMovie.getStatus().equals(MovieStatus.NOW_SHOWING)) {
+            selectedMovie.setStatus(MovieStatus.NOW_SHOWING);
+            movieManager.saveToFile();
+        }
         return new Showtime(showTimeId, selectedMovie, reservation.getRoom(), reservation.getTimeSlot(), reservation.getDay(), price);
     }
 

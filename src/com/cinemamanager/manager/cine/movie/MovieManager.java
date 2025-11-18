@@ -73,12 +73,18 @@ public final class MovieManager {
     }
 
     public void displayMovieList (List <Movie> movieList) {
+        if (movieList.isEmpty()) {
+            System.out.println("No movies available.");
+        }
         for (Movie movie : movieList) {
             System.out.println(movie);
         }
     }
 
     public void displayMovieListWithId (List <Movie> movieList) {
+        if (movieList.isEmpty()) {
+            System.out.println("No movies available.");
+        }
         for (Movie movie : movieList) {
             System.out.println("ID: " + movie.getId());
             System.out.println(movie);
@@ -413,7 +419,7 @@ public final class MovieManager {
         }
     }
 
-    private void saveToFile () {
+    public void saveToFile () {
         List <Movie> list = new ArrayList<>(movieStorageManager.findAll());
         JsonUtil.write(MOVIE_FILE_PATH, list);
     }
