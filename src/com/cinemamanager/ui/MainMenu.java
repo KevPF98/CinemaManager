@@ -357,7 +357,7 @@ public final class MainMenu {
                 return;
             }
 
-            if (!ConsoleUtil.confirm("\nWARNING: this action is permanent and cannot be reversed. Do you want to proceed?\n")) return;
+            if (!ConsoleUtil.confirm("\nWARNING: this action is permanent and cannot be reversed. Do you REALLY want to proceed?\n")) return;
             userManager.deleteUserById(idToDelete);
             System.out.println("\nThe user account has been permanently deleted.\n");
 

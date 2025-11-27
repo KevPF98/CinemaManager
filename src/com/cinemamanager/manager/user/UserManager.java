@@ -37,18 +37,18 @@ public final class UserManager {
 
         Optional<PersonalData> personalData = personalDataManager.findPersonalDataByNationalId(nationalId);
 
-        // Caso: no existe → se crea personalData + usuario
+        // Caso: no existe = se crea personalData + usuario
         if (personalData.isEmpty()) {
             User newUser = UserFactory.createUserWithNationalId(nextId, this, personalDataManager, nationalId);
             return persistNewUser(newUser, "\nUser created successfully!\n");
         }
 
-        // Caso: existe y ya es empleado → se cancela
+        // Caso: existe y ya es empleado = se cancela
         if (personalDataAlreadyAssociatedWithEmployee(nationalId)) {
             return Optional.empty();
         }
 
-        // Caso: existe pero es cliente → preguntar si quiere convertir
+        // Caso: existe pero es cliente = preguntar si quiere convertir
         if (!ConsoleUtil.confirm("\nPersonal data already exists.\nConvert this client into an employee?")) {
             return Optional.empty();
         }
@@ -61,7 +61,7 @@ public final class UserManager {
 
         User newUser = new User(
                 this.getNextId(),
-                new Account("newUser", "password123", Role.EMPLOYEE),
+                new Account("newUser" + this.nextId, "password" + data.getId(), Role.EMPLOYEE),
                 data
         );
 
