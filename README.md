@@ -54,20 +54,32 @@ Las colecciones en memoria se reconstruyen automáticamente al iniciar la aplica
 "StorageManager"
 Uno de los objetivos principales del proyecto fue evitar duplicación de lógica CRUD. Para ello se implementó un gestor genérico de almacenamiento que abstrae las operaciones comunes sobre colecciones.
 Sus principales responsabilidades son:
+
 • agregar elementos.
+
 • prevenir duplicados.
+
 • buscar por identificador.
+
 • buscar mediante predicados.
+
 • obtener todos los elementos.
+
 • limpiar colecciones.
+
 Este componente permite reutilizar la lógica de manejo de colecciones entre distintos managers del sistema.
 
 "ConsoleUtil"
 La interacción con el usuario fue centralizada en una utilidad de consola que:
-• valida distintos tipos de entrada (nombre, email, teléfono, DNI, etc.).
+
+• valida distintos tipos de entrada (nombre, email, teléfono, DNI, etc).
+
 • controla opciones de menú válidas.
+
 • maneja confirmaciones.
+
 • evita repetición de código de validación.
+
 Esto mejora la legibilidad del código y evita duplicar lógica de entrada de usuario en múltiples clases.
 
 "JsonUtil"
@@ -76,29 +88,45 @@ Del mismo modo se utiliza una clase utilitaria para la reutilización de los mé
 ────── Decisiones de diseño ──────
 
 Durante el desarrollo se priorizaron:
+
 • reutilización de código mediante componentes genéricos.
+
 • encapsulación de operaciones sobre datos.
+
 • validación consistente de entrada de usuario.
+
 • manejo explícito de errores.
+
 • claridad estructural del dominio.
 
 ────── Posible evolución arquitectónica ──────
 
 Actualmente los managers combinan responsabilidades de:
-• lógica de negocio
-• interacción con el usuario
-• persistencia
+
+• lógica de negocio.
+
+• interacción con el usuario.
+
+• persistencia.
 
 Una posible evolución del proyecto sería migrar hacia una arquitectura en capas, separando responsabilidades en:
-• Repository layer: acceso y persistencia de datos
-• Service layer: lógica de negocio
+
+• Repository layer: acceso y persistencia de datos.
+
+• Service layer: lógica de negocio.
+
 • Controller layer: interacción con el usuario.
+
 Esta separación permitiría: reducir acoplamiento, aumentar cohesión, mejorar testabilidad, aplicar correctamente el principio de responsabilidad única (SRP) en todo el proyecto y alinearse con patrones como MVC o arquitectura por capas.
 
 ────── Objetivo del proyecto ──────
 
 Este proyecto fue desarrollado como práctica de diseño estructurado en aplicaciones Java de consola, con foco en:
+
 • modelado de dominio.
+
 • abstracción de estructuras de datos.
+
 • reutilización de código.
+
 • organización modular del sistema.
